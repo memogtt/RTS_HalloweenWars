@@ -1,0 +1,2 @@
+C:\Users\memog\OneDrive\Documentos\School\Quarter_04\VGP332 Artificial Intelligence\X\x64\Debug\FW1FontWrapper.pdb
+C:\Users\memog\OneDrive\Documentos\School\Quarter_04\VGP332 Artificial Intelligence\X\X\External\FW1FontWrapper\x64\Debug\FW1FontWrapper.pdb

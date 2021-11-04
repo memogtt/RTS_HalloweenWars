@@ -1,0 +1,7 @@
+
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+*.ipch
+.vs/X/v16/.suo

@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="SCV.cpp" />
+    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="House.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Address.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="CSocket.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkInterface.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SCV.h" />
+    <ClInclude Include="TypeIds.h" />
+    <ClInclude Include="House.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="Address.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="CSocket.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkInterface.h">
+      <Filter>network</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="network">
+      <UniqueIdentifier>{8386c9cc-b3a9-4cc4-8684-a3c73016c218}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

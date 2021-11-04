@@ -1,0 +1,4 @@
+C:\Users\memog\OneDrive\Documentos\School\Quarter_04\VGP332 Artificial Intelligence\X\X\External\DirectXTK\Audio\Bin\Desktop_2017\x64\Debug\DirectXTKAudioWin8.lib
+C:\Users\memog\OneDrive\Documentos\School\Quarter_04\VGP332 Artificial Intelligence\X\X\External\DirectXTK\Audio\Bin\Desktop_2017\x64\Debug\DirectXTKAudioWin8.pdb
+C:\Users\memog\Documents\School\Quarter_09\VGP430 Senior Project\repo\X\External\DirectXTK\Audio\Bin\Desktop_2017\x64\Debug\DirectXTKAudioWin8.lib
+C:\Users\memog\Documents\School\Quarter_09\VGP430 Senior Project\HalloweenWarsGame\X\External\DirectXTK\Audio\Bin\Desktop_2017\x64\Debug\DirectXTKAudioWin8.lib
