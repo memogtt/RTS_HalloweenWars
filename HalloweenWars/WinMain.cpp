@@ -14,7 +14,7 @@ std::vector<std::shared_ptr<House>> houses;
 std::vector<std::unique_ptr<SCV>> scvs;
 std::vector<std::shared_ptr<Player>> players;
 
-X::TextureId textura = 0; 
+X::TextureId textura = 0;
 
 std::unique_ptr<NetworkInterface> pCommPort;
 const unsigned short DefaultPort = 8889;
@@ -38,72 +38,18 @@ std::shared_ptr<Player> player(std::make_shared<Player>(2));
 std::shared_ptr<Player> currentplayer;
 int currentAssignedPlayer = 0;
 
-bool ServerLobbyWaitHello();
-bool ClientLobbySendHello();
-bool ClientLobbyReceiveUpdate();
-
 void generateHouses(int num);
 void assignCurrentPlayersToHouses(int num);
-bool ServerLobbySendInitGame();
-bool ServerGameSendHouseUpdate();
-bool ClientGameReceiveHouseUpdate();
-
-void ServerGameSendMonsterUpdate();
-void clientReceiveUpdate();
-
-void ClientGameSendCommand(int idPlayer, int idHouseOrigin, int idHouseDestination, int percentage);
-void ServerGameReceiveCommand();
-
-
-bool receiveUpdatePosition();
 
 bool isServer, isClient;
 char ip[16];
 char name[16];
 
+int current_players = 0;
 std::string playerNames[8];
 
-int current_players = 0;
 bool isHelloSent = false;
 int numberHousesToGenerate = 20;
-
-struct BUpdate // used for sending and receiving frame ball updates.
-{
-	X::Math::Vector2 pos;
-	X::Color color;
-};
-
-struct HouseInitialUpdate
-{
-	int idOwner;
-	X::Math::Circle circle;
-	float regen;
-	float units;
-	int networkId;
-};
-
-struct HouseUpdate
-{
-	int idOwner;
-	float units;
-};
-
-struct AttackUpdate
-{
-	int idPlayer;
-	int idHouseOrigin;
-	int idHouseDestination;
-	int percentage;
-};
-
-struct HelloUpdate
-{
-	int idPlayer;
-	char name[16];
-};
-
-
-
 
 int checkWinCondition() {
 	int numPlayers = players.size();
@@ -140,7 +86,7 @@ int checkWinCondition() {
 bool GameLoopInitial(float deltaTime)
 {
 	static int typeInterface = 0;
-	
+
 	ImGui::Begin("Select server or client", nullptr);
 	ImGui::SetWindowSize(ImVec2(300.0f, 150.0f));
 	ImGui::RadioButton("Server", &typeInterface, 1);
@@ -152,13 +98,14 @@ bool GameLoopInitial(float deltaTime)
 		ImGui::InputText("your name", name, 16);
 	}
 
-	if (typeInterface == 1 || (typeInterface==2 && ip[0] != '\0' && name[0] != '\0') ) {
+	//if (typeInterface == 1 || (typeInterface == 2 && ip[0] != '\0' && name[0] != '\0')) {
+	if (typeInterface == 1 || (typeInterface == 2 && name[0] != '\0')) {
 
 		if (ImGui::Button("Connect")) {
 
 			if (typeInterface == 2)
 			{
-				//sprintf_s(ip, "127.0.0.1", 16);
+				sprintf_s(ip, "127.0.0.1", 16);
 				//sprintf_s(ip, "10.0.0.210", 16);
 				isClient = true;
 				isServer = false;
@@ -180,20 +127,18 @@ bool GameLoopInitial(float deltaTime)
 	return false;
 }
 
-
-
 bool GameLoopLobby(float deltaTime)
 {
 	ImGui::Begin("Game configuration", nullptr);
 	if (isServer) {
 		X::DrawScreenText("Waiting for clients...", 200.0f, 100.0f, 20.f, X::Colors::White);
-		ServerLobbyWaitHello();
+		pCommPort->ServerLobbyWaitHello(players, current_players, playerNames, playerColors);
 	}
 	else
 	{
 		if (!isHelloSent)
 		{
-			isHelloSent = ClientLobbySendHello();
+			isHelloSent = pCommPort->ClientLobbySendHello(name, currentAssignedPlayer, playerNames);
 
 			if (!isHelloSent) {
 				if (ImGui::Button("couldnt connect. Click to try again?"))
@@ -221,7 +166,7 @@ bool GameLoopLobby(float deltaTime)
 
 			X::DrawScreenText(multiMessage.c_str(), 200.0f, 50.0f, 30.f, playerColors[currentAssignedPlayer]);
 
-			if (ClientLobbyReceiveUpdate())
+			if (pCommPort->ClientLobbyReceiveUpdate(current_players, playerNames, houses, world, players, playerColors))
 			{
 				world.Initialize({
 					(float)X::GetScreenWidth(),
@@ -230,6 +175,7 @@ bool GameLoopLobby(float deltaTime)
 
 				assignCurrentPlayersToHouses(current_players);
 				currentplayer = players[currentAssignedPlayer - 1];
+				ImGui::End();
 				return true;
 			}
 		}
@@ -251,7 +197,7 @@ bool GameLoopLobby(float deltaTime)
 			X::DrawScreenText(players[0]->GetName().c_str(), 200.0f, 200.0f, 20.f, playerColors[0]);
 		}
 
-//		ImGui::Begin("Game configuration", nullptr);
+		//		ImGui::Begin("Game configuration", nullptr);
 		ImGui::SetWindowSize(ImVec2(300.0f, 150.0f));
 		ImGui::SliderInt("House number", &numberHousesToGenerate, 5, 30);
 		if (ImGui::Button("StartGame"))
@@ -264,14 +210,14 @@ bool GameLoopLobby(float deltaTime)
 
 				generateHouses(numberHousesToGenerate);
 				assignCurrentPlayersToHouses(current_players);
-				ServerLobbySendInitGame();
+				pCommPort->ServerLobbySendInitGame(houses);
 
 				currentplayer = players[current_players - 1];
 				ImGui::End();
 				return true;
 			}
 		}
-//		ImGui::End();
+		//		ImGui::End();
 	}
 	ImGui::End();
 	////dinamyc way to load them
@@ -289,7 +235,7 @@ bool GameLoopLobby(float deltaTime)
 	return X::IsKeyPressed(X::Keys::ESCAPE);
 }
 
-void GameInit()
+void GameInitSinglePlayer()
 {
 
 	X::DrawScreenText("hi", (float)X::GetScreenWidth() / 2.0f, (float)X::GetScreenHeight() / 2.0f, 80.0f, X::Colors::White);
@@ -312,11 +258,8 @@ void GameCleanup()
 	pCommPort->m_socket.Close();
 }
 
-
-
 bool GameLoop(float deltaTime)
 {
-
 
 	if (pCommPort->isServer()) {
 		if (players.empty())
@@ -338,9 +281,9 @@ bool GameLoop(float deltaTime)
 
 		world.Update();
 
-		ServerGameSendHouseUpdate();
-		ServerGameSendMonsterUpdate();
-		ServerGameReceiveCommand();
+		pCommPort->ServerGameSendHouseUpdate(houses);
+		pCommPort->ServerGameSendMonsterUpdate(scvs);
+		pCommPort->ServerGameReceiveCommand(houses, scvs,players,world);
 
 		for (auto& scv : scvs)
 		{
@@ -352,7 +295,7 @@ bool GameLoop(float deltaTime)
 	}
 	else
 	{
-		ClientGameReceiveHouseUpdate();
+		pCommPort->ClientGameReceiveHouseUpdate(houses, players);
 	}
 
 
@@ -409,7 +352,7 @@ bool GameLoop(float deltaTime)
 					}
 					else
 					{
-						ClientGameSendCommand(currentplayer->GetId(), currentplayer->mHouseSelected->GetNetworkHouseId(), house->GetNetworkHouseId(), currentplayer->GetPercentage());
+						pCommPort->ClientGameSendCommand(currentplayer->GetId(), currentplayer->mHouseSelected->GetNetworkHouseId(), house->GetNetworkHouseId(), currentplayer->GetPercentage());
 					}
 
 					break;
@@ -463,7 +406,7 @@ bool GameLoop(float deltaTime)
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	X::Start();
-	textura = X::LoadTexture("cat_03.png");
+	//textura = X::LoadTexture("cat_03.png");
 	X::Run(GameLoopInitial);
 	X::Run(GameLoopLobby);
 
@@ -475,448 +418,12 @@ int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
-	//GameInit();	//for single player
+	//GameInitSinglePlayer();	//for single player
 	X::Run(GameLoop);
 
 	GameCleanup();
 	X::Stop();
 	return 0;
-}
-
-bool ServerLobbyWaitHello()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "receiveUpdate()::pCommPort not initialized yet!\n";
-		return false;
-	}
-
-	char buf[1024]{ 0 };
-	//char buf[4096]{ 0 };
-	//memset(buf, 0, 1024);
-	int numPlayerSender{ 0 };
-	int bytes = pCommPort->recvData(buf, 1024, numPlayerSender);
-	if (bytes < 0)
-	{
-		//std::cerr << "Error receiveUpdate()\n";
-		//X::DrawScreenText("ERROR recv", 100.0f, 100.0f, 20.f, X::Colors::White);
-		return false;
-	}
-	else
-	{
-		//buf[bytes] = '\n';
-
-	/*	if (!strcmp(buf, "hello"))
-		{*/
-		auto& player = players.emplace_back(std::make_shared<Player>(numPlayerSender));
-		player->SetColor(playerColors[numPlayerSender]);
-		player->SetName(buf);
-		//houses[numPlayerSender]->SetOwner(player);
-
-		//char tmp[16] = {};
-		//sprintf_s(tmp, "%s", buf);
-
-		//aaaaaaaaaaaaa
-		HelloUpdate update;
-		update.idPlayer = numPlayerSender;
-		sprintf_s(update.name, "%s", buf);
-
-		//char playerNumBack[8] = {};
-		//sprintf_s(playerNumBack, "%d", numPlayerSender);
-		//std::string testa = "this is testing";
-
-		//char buf2[100] = static_cast<char*>(update);
-
-		pCommPort->sendDataTo((char*)&update, sizeof(HelloUpdate), numPlayerSender);
-		pCommPort->sendDataBroadcast((char*)&update, sizeof(HelloUpdate));
-
-		//pCommPort->sendDataTo(playerNumBack, std::strlen(playerNumBack), numPlayerSender);
-		//pCommPort->sendDataBroadcast(playerNumBack, std::strlen(playerNumBack));
-
-		current_players = numPlayerSender;//last player numberplayer
-		playerNames[current_players] = buf;
-
-		return true;
-		//}
-		//X::DrawScreenText(buf, 100.0f, 100.0f, 20.f, X::Colors::White);
-		//current_players = atoi(buf);
-	}
-
-	return false;
-}
-
-bool ClientLobbySendHello()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "receiveUpdate()::pCommPort not initialized yet!\n";
-		return false;
-	}
-
-	std::string msg2{ std::to_string(pCommPort->currentPlayers) };
-
-	char initialHello[16] = {};
-	//sprintf_s(initialHello, "hello");
-	sprintf_s(initialHello, name);
-	//std::string testa = "this is testing";
-	pCommPort->sendData(initialHello, std::strlen(initialHello));
-
-
-	char buf[1024]{ 0 };
-
-	int numPlayerSender{ 0 };
-	int bytes = pCommPort->recvData(buf, 1024);
-
-	int max_attemps = 5;
-	int current_attemps = 0;
-	while (bytes < 0) {
-		if (current_attemps < max_attemps) {
-			Sleep(100);
-			bytes = pCommPort->recvData(buf, 1024);
-			current_attemps++;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	HelloUpdate* helloUp = reinterpret_cast<HelloUpdate*>(buf);
-	//current_players = atoi(buf);
-	currentAssignedPlayer = helloUp->idPlayer;
-	playerNames[currentAssignedPlayer] = helloUp->name;
-
-	//currentAssignedPlayer = atoi(buf);
-	return true;
-}
-
-// client could receive hello update or Init game update from server
-bool ClientLobbyReceiveUpdate()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "receiveUpdate()::pCommPort not initialized yet!\n";
-		return false;
-	}
-
-	char buf[1024]{ 0 };
-	//char buf[4096]{ 0 };
-	//memset(buf, 0, 1024);
-	auto helloSize{ sizeof(HelloUpdate) };
-
-	int bytes = pCommPort->recvData(buf, 1024);
-	if (bytes < 0)
-	{
-		//std::cerr << "Error receiveUpdate()\n";
-
-		return false;
-	}
-	//eeee
-	//else if (bytes < 8)
-	else if (bytes == helloSize)
-	{
-		//std::cerr << "Error receiveUpdate()\n";
-		HelloUpdate* helloUp = reinterpret_cast<HelloUpdate*>(buf);
-		//current_players = atoi(buf);
-		current_players = helloUp->idPlayer;
-		playerNames[current_players] = helloUp->name;
-
-		return false;
-	}
-	else
-	{
-		auto bSize{ sizeof(HouseInitialUpdate) };
-		int rCount = bytes / bSize;
-		//assert(rCount * bSize == bytes);
-		//assert(rCount == BallCount);
-		if (rCount * bSize == bytes) {
-			for (int i = 0; i < rCount; ++i)
-			{
-				HouseInitialUpdate* b = reinterpret_cast<HouseInitialUpdate*>(buf + i * bSize);
-
-				auto& house = houses.emplace_back(std::make_shared<House>(world));
-				house->position = b->circle.center;
-				house->radius = b->circle.radius;
-				house->SetRegenRate(b->regen);
-				house->Initialize();
-				house->SetUnits(b->units);
-				house->SetNetworkHouseId(b->networkId);
-			}
-
-
-			for (size_t i = 0; i < current_players; ++i)
-			{
-				auto& player = players.emplace_back(std::make_shared<Player>(i + 1));
-				player->SetColor(playerColors[i + 1]);
-				player->SetName(playerNames[i]);
-
-				houses[i]->SetOwner(player);
-				houses[i]->SetPlayerOwner(i + 1);
-			}
-			return true;
-		}
-	}
-	return false;
-}
-
-void clientReceiveUpdate()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "receiveUpdate()::pCommPort not initialized yet!\n";
-		return;
-	}
-
-	char buf[1024]{ 0 };
-	//char buf[4096]{ 0 };
-	//memset(buf, 0, 1024);
-	int bytes = pCommPort->recvData(buf, 1024);
-	if (bytes < 0)
-	{
-		//std::cerr << "Error receiveUpdate()\n";
-		X::DrawScreenText("ERROR recv", 100.0f, 100.0f, 20.f, X::Colors::White);
-		return;
-	}
-	else
-	{
-		buf[bytes] = '\n';
-		//X::DrawScreenText(buf, 100.0f, 100.0f, 20.f, X::Colors::White);
-		current_players = atoi(buf);
-	}
-}
-
-void serializeLocalSample(char* buf)
-{
-	const auto objectSize{ sizeof(Player) };
-	for (int i = 0; i < players.size(); ++i)
-	{
-		memcpy_s(buf + i * objectSize, objectSize, &players[i], objectSize);
-	}
-}
-
-// sends initial update of houses
-bool ServerLobbySendInitGame()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "ServerLobbySendInitGame()::pCommPort not initialized yet!\n";
-		return true;
-	}
-
-	//static HouseUpdate sHouse[2];
-	//std::vector<std::unique_ptr<BUpdate>> testin;
-	std::vector<HouseInitialUpdate> houseVector;
-	for (auto& h : houses) {
-		HouseInitialUpdate tmp;
-		tmp.idOwner = h->GetPlayerNetworkId();
-		tmp.circle = h->getCircle();
-		tmp.regen = h->GetRegenRate();
-		tmp.units = h->GetUnits();
-		tmp.networkId = h->GetNetworkHouseId();
-		//auto& bupdate = testin.emplace_back(std::make_unique<BUpdate>());
-		//bupdate->pos = scv->position;
-
-		houseVector.push_back(tmp);
-	}
-	//X::DrawScreenText(std::to_string(sizeof(BUpdate) * testscvs.size()).c_str(), 100.0f, 100.0f, 20.f, X::Colors::White);
-	pCommPort->sendDataBroadcast((char*)&houseVector[0], sizeof(HouseInitialUpdate) * houseVector.size());
-
-	return true;
-}
-
-bool ServerGameSendHouseUpdate()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "sendUpdate()::pCommPort not initialized yet!\n";
-		return true;
-	}
-
-	std::vector<HouseUpdate> houseVector;
-	for (auto& h : houses) {
-		HouseUpdate tmp;
-		tmp.idOwner = h->GetPlayerNetworkId();
-		tmp.units = h->GetUnits();
-
-		houseVector.push_back(tmp);
-	}
-	pCommPort->sendDataBroadcast((char*)&houseVector[0], sizeof(HouseUpdate) * houseVector.size());
-
-	return true;
-}
-
-bool ClientGameReceiveHouseUpdate()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "sendUpdate()::pCommPort not initialized yet!\n";
-		return true;
-	}
-
-	char buf[1024]{ 0 };
-	//char buf[4096]{ 0 };
-	//memset(buf, 0, 1024);
-	int bytes = pCommPort->recvData(buf, 1024);
-
-	while (bytes > 0) {
-		if (bytes < 0)
-		{
-			//std::cerr << "Error receiveUpdate()\n";
-			return false;
-		}
-		else
-		{
-			auto hSize{ sizeof(HouseUpdate) };
-			int hCount = bytes / hSize;
-			assert(hCount * hSize == bytes);
-			//assert(rCount == houses.size())
-			if (hCount == houses.size()) {
-				for (int i = 0; i < hCount; ++i)
-				{
-					HouseUpdate* b = reinterpret_cast<HouseUpdate*>(buf + i * hSize);
-
-					houses[i]->SetUnits(b->units);
-					houses[i]->SetPlayerOwner(b->idOwner);
-					if ((b->idOwner) != 0)
-						houses[i]->SetOwner(players[b->idOwner - 1]);
-				}
-			}
-			else
-			{
-				auto bSize{ sizeof(BUpdate) };
-				int rCount = bytes / bSize;
-				assert(rCount * bSize == bytes);
-				//assert(rCount == BallCount);
-				for (int i = 0; i < rCount; ++i)
-				{
-					BUpdate* b = reinterpret_cast<BUpdate*>(buf + i * bSize);
-					X::DrawSprite(textura, b->pos);
-					X::DrawScreenCircle({ b->pos,20.0f }, b->color);
-				}
-			}
-		}
-		bytes = pCommPort->recvData(buf, 1024);
-	}
-	return true;
-}
-
-void ServerGameSendMonsterUpdate()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "sendUpdate()::pCommPort not initialized yet!\n";
-		return;
-	}
-
-	if (!scvs.empty()) {
-		int size = scvs.size();
-
-		auto hSize{ sizeof(BUpdate) };
-		int loops = ceil((hSize * static_cast<float>(size)) / 800.0f);
-		int count_in_chunk_size = 800 / hSize;
-		//assert(hCount * hSize == bytes);
-		//assert(rCount == houses.size())
-
-		std::vector<BUpdate> testin;
-		for (auto& scv : scvs) {
-			BUpdate tmp;
-			tmp.pos = scv->position;
-			//tmp.dest = scv->destination;
-			tmp.color = scv->GetOwner()->GetColor();
-
-			testin.push_back(tmp);
-		}
-		if (loops == 1)
-		{
-			pCommPort->sendDataBroadcast((char*)&testin[0], sizeof(BUpdate) * size);
-		}
-		else
-		{
-			for (int i = 0; i < loops; ++i)
-			{
-				//X::DrawScreenText(std::to_string(sizeof(BUpdate) * testscvs.size()).c_str(), 100.0f, 100.0f, 20.f, X::Colors::White);
-				if (i == loops)
-					pCommPort->sendDataBroadcast((char*)&testin[i * count_in_chunk_size], sizeof(BUpdate) * (size - (i * count_in_chunk_size)));
-				else
-					pCommPort->sendDataBroadcast((char*)&testin[i * count_in_chunk_size], sizeof(BUpdate) * count_in_chunk_size);
-			}
-		}
-	}
-}
-
-void ClientGameSendCommand(int idPlayer, int idHouseOrigin, int idHouseDestination, int percentage)
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "clientSendCommand()::pCommPort not initialized yet!\n";
-		return;
-	}
-
-	AttackUpdate attack;
-	attack.idPlayer = idPlayer;
-	attack.idHouseOrigin = idHouseOrigin;
-	attack.idHouseDestination = idHouseDestination;
-	attack.percentage = percentage;
-
-	pCommPort->sendData((char*)&attack, sizeof(AttackUpdate));
-
-}
-void ServerGameReceiveCommand()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "serverReceiveCommand()::pCommPort not initialized yet!\n";
-		return;
-	}
-
-	char buf[1024]{ 0 };
-	int bytes = pCommPort->recvData(buf, 1024);
-	while (bytes > 0)
-	{
-		auto bSize{ sizeof(AttackUpdate) };
-		AttackUpdate* b = reinterpret_cast<AttackUpdate*>(buf);
-
-		houses[b->idHouseOrigin]->sendMonsters(world, houses[b->idHouseDestination], players[b->idPlayer - 1], scvs, b->percentage);
-		bytes = pCommPort->recvData(buf, 1024);
-	}
-
-	return;
-}
-
-
-bool receiveUpdatePosition()
-{
-	if (!pCommPort || !pCommPort->Initialized())
-	{
-		std::cerr << "receiveUpdate()::pCommPort not initialized yet!\n";
-		return false;
-	}
-
-	char buf[1024]{ 0 };
-	//char buf[4096]{ 0 };
-	//memset(buf, 0, 1024);
-	int bytes = pCommPort->recvData(buf, 1024);
-	if (bytes < 0)
-	{
-		//std::cerr << "Error receiveUpdate()\n";
-		X::DrawScreenText("ERROR", 100.0f, 100.0f, 20.f, X::Colors::White);
-		return false;
-	}
-	else
-	{
-		auto bSize{ sizeof(BUpdate) };
-		int rCount = bytes / bSize;
-		assert(rCount * bSize == bytes);
-		//assert(rCount == BallCount);
-		for (int i = 0; i < rCount; ++i)
-		{
-			BUpdate* b = reinterpret_cast<BUpdate*>(buf + i * bSize);
-			X::DrawSprite(textura, b->pos);
-			X::DrawScreenCircle({ b->pos,20.0f }, b->color);
-			
-		}
-
-		return true;
-	}
 }
 
 void generateHouses(int num) {
