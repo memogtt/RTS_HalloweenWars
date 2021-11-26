@@ -5,21 +5,20 @@ namespace Core
 	class GameEngine
 	{
 	public:
+
 		static void GameStart();
 		static void GameLoop();
 		static void GameEnd();
 
-		bool static GameLoopInitial(float deltaTime);
-
-		bool GameLoopLobby(float deltaTime);
-		bool GameLoopSinglePlayer(float deltaTime);
-		bool GameLoopMultiPlayer(float deltaTime);
-		bool GameCleanup();
+		static bool GameLoopInitial(float deltaTime);
+		static bool GameLoopLobby(float deltaTime);
+		static bool GameLoopSinglePlayer(float deltaTime);
+		static bool GameLoopMultiPlayer(float deltaTime);
+		static bool GameCleanup();
 
 		// Utility methods
-		int checkWinCondition();
-		void generateHouses(int num);
-		void assignCurrentPlayersToHouses(int num);
-
+		static int checkWinCondition();
+		static void generateHouses(int num);
+		static void assignCurrentPlayersToHouses(int num);
 	};
 }

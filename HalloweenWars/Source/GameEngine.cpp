@@ -43,9 +43,6 @@ std::shared_ptr<Player> player(std::make_shared<Player>(2));
 std::shared_ptr<Player> currentplayer;
 int currentAssignedPlayer = 0;
 
-void generateHouses(int num);
-void assignCurrentPlayersToHouses(int num);
-
 bool isServer, isClient;
 char ip[16];
 char name[16];
@@ -64,19 +61,23 @@ void GameEngine::GameStart()
 
 void GameEngine::GameLoop()
 {
-	//X::Run(GameLoopInitial);
-	//X::Run(GameLoopLobby);
+	X::Run(GameLoopInitial);
 
-	//if (!pCommPort->isServer()) {
-	//	while (!isHelloSent)
-	//	{
-	//		X::Run(GameLoopInitial);
-	//		X::Run(GameLoopLobby);
-	//	}
-	//}
+	//auto gl = std::bind(&GameLoopInitial);
+	//X::Run((std::function<bool(float)>&)gl);
 
-	////GameInitSinglePlayer();	//for single player
-	//X::Run(GameLoop);
+	X::Run(GameLoopLobby);
+
+	if (!pCommPort->isServer()) {
+		while (!isHelloSent)
+		{
+			X::Run(GameLoopInitial);
+			X::Run(GameLoopLobby);
+		}
+	}
+
+	//GameInitSinglePlayer();	//for single player
+	X::Run(GameLoopMultiPlayer);
 }
 
 void GameEngine::GameEnd()

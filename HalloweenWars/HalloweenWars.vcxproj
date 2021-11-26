@@ -163,10 +163,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Address.cpp" />
-    <ClCompile Include="CSocket.cpp" />
-    <ClCompile Include="GameEngine.cpp" />
-    <ClCompile Include="NetworkInterface.cpp" />
     <ClCompile Include="HalloweenWarsBuilder.cpp" />
     <ClCompile Include="Source\Address.cpp" />
     <ClCompile Include="Source\CSocket.cpp" />
@@ -177,10 +173,6 @@
     <ClCompile Include="Source\SCV.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Address.h" />
-    <ClInclude Include="CSocket.h" />
-    <ClInclude Include="GameEngine.h" />
-    <ClInclude Include="NetworkInterface.h" />
     <ClInclude Include="Source\Address.h" />
     <ClInclude Include="Source\CSocket.h" />
     <ClInclude Include="Source\GameEngine.h" />

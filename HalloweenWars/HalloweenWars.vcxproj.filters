@@ -2,16 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="HalloweenWarsBuilder.cpp" />
-    <ClCompile Include="Address.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
-    <ClCompile Include="CSocket.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
-    <ClCompile Include="NetworkInterface.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
-    <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="Source\Address.cpp" />
     <ClCompile Include="Source\CSocket.cpp" />
     <ClCompile Include="Source\GameEngine.cpp" />
@@ -21,16 +11,6 @@
     <ClCompile Include="Source\SCV.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Address.h">
-      <Filter>network</Filter>
-    </ClInclude>
-    <ClInclude Include="CSocket.h">
-      <Filter>network</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkInterface.h">
-      <Filter>network</Filter>
-    </ClInclude>
-    <ClInclude Include="GameEngine.h" />
     <ClInclude Include="Source\Address.h" />
     <ClInclude Include="Source\CSocket.h" />
     <ClInclude Include="Source\GameEngine.h" />
@@ -39,10 +19,5 @@
     <ClInclude Include="Source\Player.h" />
     <ClInclude Include="Source\SCV.h" />
     <ClInclude Include="Source\TypeIds.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="network">
-      <UniqueIdentifier>{8386c9cc-b3a9-4cc4-8684-a3c73016c218}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>
