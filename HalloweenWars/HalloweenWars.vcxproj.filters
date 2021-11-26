@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="SCV.cpp" />
-    <ClCompile Include="WinMain.cpp" />
-    <ClCompile Include="House.cpp" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="HalloweenWarsBuilder.cpp" />
     <ClCompile Include="Address.cpp">
       <Filter>network</Filter>
     </ClCompile>
@@ -14,12 +11,16 @@
     <ClCompile Include="NetworkInterface.cpp">
       <Filter>network</Filter>
     </ClCompile>
+    <ClCompile Include="GameEngine.cpp" />
+    <ClCompile Include="Source\Address.cpp" />
+    <ClCompile Include="Source\CSocket.cpp" />
+    <ClCompile Include="Source\GameEngine.cpp" />
+    <ClCompile Include="Source\House.cpp" />
+    <ClCompile Include="Source\NetworkInterface.cpp" />
+    <ClCompile Include="Source\Player.cpp" />
+    <ClCompile Include="Source\SCV.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SCV.h" />
-    <ClInclude Include="TypeIds.h" />
-    <ClInclude Include="House.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="Address.h">
       <Filter>network</Filter>
     </ClInclude>
@@ -29,6 +30,15 @@
     <ClInclude Include="NetworkInterface.h">
       <Filter>network</Filter>
     </ClInclude>
+    <ClInclude Include="GameEngine.h" />
+    <ClInclude Include="Source\Address.h" />
+    <ClInclude Include="Source\CSocket.h" />
+    <ClInclude Include="Source\GameEngine.h" />
+    <ClInclude Include="Source\House.h" />
+    <ClInclude Include="Source\NetworkInterface.h" />
+    <ClInclude Include="Source\Player.h" />
+    <ClInclude Include="Source\SCV.h" />
+    <ClInclude Include="Source\TypeIds.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="network">
