@@ -95,3 +95,4 @@ AI/x64/Debug/AI.log
 Build/Debug/x64/HalloweenWars.exp
 Build/Debug/x64/HalloweenWars.pdb
 X/x64/Debug/X.log
+*.pdb
