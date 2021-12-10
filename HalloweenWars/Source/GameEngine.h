@@ -5,11 +5,11 @@ namespace Core
 	class GameEngine
 	{
 	public:
-
 		static void GameStart();
 		static void GameLoop();
 		static void GameEnd();
 
+	private:
 		static bool GameLoopInitial(float deltaTime);
 		static bool GameLoopLobby(float deltaTime);
 		static bool GameLoopSinglePlayer(float deltaTime);

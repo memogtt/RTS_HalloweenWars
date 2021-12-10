@@ -13,6 +13,18 @@
 #endif
 
 
+struct Header
+{
+	int id;
+	int qty;
+};
+
+struct ClientInitialHello
+{
+	int idPlayer;
+	char name[16];
+};
+
 struct PlayerN {
 	int id = 0;
 	Address clientAddress;
@@ -213,6 +225,8 @@ bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>
 	//memset(buf, 0, 1024);
 	int numPlayerSender{ 0 };
 	int bytes = this->recvData(buf, 1024, numPlayerSender);
+
+
 	if (bytes < 0)
 	{
 		//std::cerr << "Error receiveUpdate()\n";
@@ -221,42 +235,111 @@ bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>
 	}
 	else
 	{
-		//buf[bytes] = '\n';
+		Header* header = reinterpret_cast<Header*>(buf);
 
-	/*	if (!strcmp(buf, "hello"))
-		{*/
-		auto& player = players.emplace_back(std::make_shared<Player>(numPlayerSender));
-		player->SetColor(playerColors[numPlayerSender]);
-		player->SetName(buf);
-		//houses[numPlayerSender]->SetOwner(player);
+		ClientInitialHello* clientHello = reinterpret_cast<ClientInitialHello*>(buf + sizeof(Header));
 
-		//char tmp[16] = {};
-		//sprintf_s(tmp, "%s", buf);
+		if (header->id == 1)
+		{
+			auto& player = players.emplace_back(std::make_shared<Player>(numPlayerSender));
+			player->SetColor(playerColors[numPlayerSender]);
+			player->SetName(clientHello->name);
 
-		//aaaaaaaaaaaaa
-		HelloUpdate update;
-		update.idPlayer = numPlayerSender;
-		sprintf_s(update.name, "%s", buf);
+			char bufReply[32]{ 0 };
 
-		//char playerNumBack[8] = {};
-		//sprintf_s(playerNumBack, "%d", numPlayerSender);
-		//std::string testa = "this is testing";
+			Header header;
+			header.id = 1;
+			header.qty = 1;
+			const auto headerSize{ sizeof(Header) };
+			memcpy_s(bufReply, headerSize, &header, headerSize);
 
-		//char buf2[100] = static_cast<char*>(update);
+			ClientInitialHello hello;
+			hello.idPlayer = numPlayerSender;
+			//strcpy_s(hello.name, name);
+			const auto clientInitialHelloSize{ sizeof(ClientInitialHello) };
+			memcpy_s(bufReply + headerSize, clientInitialHelloSize, &hello, clientInitialHelloSize);
 
-		this->sendDataTo((char*)&update, sizeof(HelloUpdate), numPlayerSender);
-		this->sendDataBroadcast((char*)&update, sizeof(HelloUpdate));
+			this->sendDataTo(bufReply, sizeof(bufReply), hello.idPlayer);
 
-		//pCommPort->sendDataTo(playerNumBack, std::strlen(playerNumBack), numPlayerSender);
-		//pCommPort->sendDataBroadcast(playerNumBack, std::strlen(playerNumBack));
+			//HelloUpdate update;
+			//update.idPlayer = numPlayerSender;
+			//sprintf_s(update.name, "%s", clientHello->name);
+			//this->sendDataTo((char*)&update, sizeof(HelloUpdate), numPlayerSender);
+			//this->sendDataBroadcast((char*)&update, sizeof(HelloUpdate));
 
-		current_players = numPlayerSender;//last player numberplayer
-		playerNames[current_players] = buf;
+			//current_players = numPlayerSender;//last player numberplayer
+			current_players = players.size();//last player numberplayer
+			playerNames[hello.idPlayer] = clientHello->name;
+
+		}
+
+
+		char bufPlayers[512]{ 0 };
+
+		Header headerPlayersUpdate;
+		headerPlayersUpdate.id = 2;
+		headerPlayersUpdate.qty = players.size();
+
+		const auto headerSize{ sizeof(Header) };
+		memcpy_s(bufPlayers, headerSize, &headerPlayersUpdate, headerSize);
+
+
+		const auto objectSize{ sizeof(ClientInitialHello) };
+		//const auto objectSize{ sizeof(Player) };
+		for (int i = 0; i < players.size(); ++i)
+		{
+			ClientInitialHello hello;
+			hello.idPlayer = players[i]->GetId();
+			strcpy_s(hello.name, players[i]->GetName().c_str());
+			const auto clientInitialHelloSize{ sizeof(ClientInitialHello) };
+			//memcpy_s(bufPlayers + headerSize, clientInitialHelloSize, &hello, clientInitialHelloSize);
+
+			memcpy_s(bufPlayers + headerSize + (i * objectSize), objectSize, &hello, objectSize);
+			//memcpy_s(bufPlayers + headerSize + (i * objectSize), objectSize, &players[i], objectSize);
+		}
+
+		this->sendDataBroadcast(bufPlayers, sizeof(bufPlayers));
 
 		return true;
-		//}
-		//X::DrawScreenText(buf, 100.0f, 100.0f, 20.f, X::Colors::White);
-		//current_players = atoi(buf);
+		/*	if (!strcmp(buf, "hello"))
+			{*/
+
+
+
+			////auto& player = players.emplace_back(std::make_shared<Player>(numPlayerSender));
+			////player->SetColor(playerColors[numPlayerSender]);
+			////player->SetName(clientHello->name);
+			//////houses[numPlayerSender]->SetOwner(player);
+
+			//////char tmp[16] = {};
+			//////sprintf_s(tmp, "%s", buf);
+
+			////HelloUpdate update;
+			////update.idPlayer = numPlayerSender;
+			////sprintf_s(update.name, "%s", clientHello->name);
+
+			//////char playerNumBack[8] = {};
+			//////sprintf_s(playerNumBack, "%d", numPlayerSender);
+			//////std::string testa = "this is testing";
+
+			//////char buf2[100] = static_cast<char*>(update);
+
+			////this->sendDataTo((char*)&update, sizeof(HelloUpdate), numPlayerSender);
+			////this->sendDataBroadcast((char*)&update, sizeof(HelloUpdate));
+
+			//////pCommPort->sendDataTo(playerNumBack, std::strlen(playerNumBack), numPlayerSender);
+			//////pCommPort->sendDataBroadcast(playerNumBack, std::strlen(playerNumBack));
+
+			////current_players = numPlayerSender;//last player numberplayer
+			////playerNames[current_players] = clientHello->name;
+
+			////return true;
+
+
+
+			//}
+			//X::DrawScreenText(buf, 100.0f, 100.0f, 20.f, X::Colors::White);
+			//current_players = atoi(buf);
 	}
 
 	return false;
@@ -270,13 +353,30 @@ bool NetworkInterface::ClientLobbySendHello(char* name, int& currentAssignedPlay
 		return false;
 	}
 
-	std::string msg2{ std::to_string(this->currentPlayers) };
+	char buftest[32]{ 0 };
 
-	char initialHello[16] = {};
-	//sprintf_s(initialHello, "hello");
-	sprintf_s(initialHello, name);
-	//std::string testa = "this is testing";
-	this->sendData(initialHello, std::strlen(initialHello));
+	Header header;
+	header.id = 1;
+	header.qty = 1;
+	const auto headerSize{ sizeof(Header) };
+	memcpy_s(buftest, headerSize, &header, headerSize);
+
+	ClientInitialHello hello;
+	hello.idPlayer = 0;
+	strcpy_s(hello.name, name);
+	const auto clientInitialHelloSize{ sizeof(ClientInitialHello) };
+	memcpy_s(buftest + headerSize, clientInitialHelloSize, &hello, clientInitialHelloSize);
+
+	//memcpy_s(buftest + headerSize, sizeof(name), &name, sizeof(name));
+	this->sendData(buftest, sizeof(buftest));
+	//this->sendData(initialHello, std::strlen(initialHello));
+
+
+	//const auto objectSize{ sizeof(Player) };
+	//for (int i = 0; i < players.size(); ++i)
+	//{
+	//	memcpy_s(buf + headerSize + (i * objectSize), objectSize, &players[i], objectSize);
+	//}
 
 
 	char buf[1024]{ 0 };
@@ -297,13 +397,30 @@ bool NetworkInterface::ClientLobbySendHello(char* name, int& currentAssignedPlay
 			return false;
 		}
 	}
-	HelloUpdate* helloUp = reinterpret_cast<HelloUpdate*>(buf);
+
+	Header* headerReply = reinterpret_cast<Header*>(buf);
+
+	ClientInitialHello* clientHello = reinterpret_cast<ClientInitialHello*>(buf + sizeof(Header));
+
+	if (headerReply->id == 1)
+	{
+		currentAssignedPlayer = clientHello->idPlayer;
+		playerNames[currentAssignedPlayer] = name;
+		//playerNames[currentAssignedPlayer] = clientHello->name;
+
+		return true;
+	}
 	//current_players = atoi(buf);
-	currentAssignedPlayer = helloUp->idPlayer;
-	playerNames[currentAssignedPlayer] = helloUp->name;
+
+
+
+	////HelloUpdate* helloUp = reinterpret_cast<HelloUpdate*>(buf);
+	//////current_players = atoi(buf);
+	////currentAssignedPlayer = helloUp->idPlayer;
+	////playerNames[currentAssignedPlayer] = helloUp->name;
 
 	//currentAssignedPlayer = atoi(buf);
-	return true;
+	return false;
 }
 
 
@@ -322,6 +439,10 @@ bool NetworkInterface::ClientLobbyReceiveUpdate(int& current_players, std::strin
 	auto helloSize{ sizeof(HelloUpdate) };
 
 	int bytes = this->recvData(buf, 1024);
+
+	Header* headerReply = reinterpret_cast<Header*>(buf);
+
+
 	if (bytes < 0)
 	{
 		//std::cerr << "Error receiveUpdate()\n";
@@ -330,6 +451,32 @@ bool NetworkInterface::ClientLobbyReceiveUpdate(int& current_players, std::strin
 	}
 	//eeee
 	//else if (bytes < 8)
+	else if (headerReply->id==2)
+	{
+		current_players = headerReply->qty;
+
+		auto playerSize{ sizeof(ClientInitialHello) };
+
+
+		for (int i = 0; i < headerReply->qty; ++i)
+		{
+			//Player* b = reinterpret_cast<Player*>(buf + sizeof(Header) + (i * playerSize));
+			ClientInitialHello* b = reinterpret_cast<ClientInitialHello*>(buf + sizeof(Header) + (i * playerSize));
+
+			playerNames[b->idPlayer] = b->name;
+			//playerNames[b->GetId()] = b->GetName();
+			//b->
+			//auto& house = houses.emplace_back(std::make_shared<House>(world));
+			//house->position = b->circle.center;
+			//house->radius = b->circle.radius;
+			//house->SetRegenRate(b->regen);
+			//house->Initialize();
+			//house->SetUnits(b->units);
+			//house->SetNetworkHouseId(b->networkId);
+		}
+		return false;
+	}
+
 	else if (bytes == helloSize)
 	{
 		//std::cerr << "Error receiveUpdate()\n";
@@ -567,5 +714,22 @@ bool NetworkInterface::ClientGameSendCommand(int idPlayer, int idHouseOrigin, in
 	this->sendData((char*)&attack, sizeof(AttackUpdate));
 
 	return true;
+}
+
+void NetworkInterface::serializeLocalSample(char* buf)
+{
+	Header header;
+	header.id = 1;
+	header.qty = 1;
+
+	const auto headerSize{ sizeof(Header) };
+
+
+	//const auto objectSize{ sizeof(Player) };
+	//for (int i = 0; i < players.size(); ++i)
+	//{
+	//	memcpy_s(buf + headerSize + (i * objectSize), objectSize, &players[i], objectSize);
+	//}
+
 }
 

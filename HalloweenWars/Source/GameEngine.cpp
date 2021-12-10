@@ -43,16 +43,15 @@ std::shared_ptr<Player> player(std::make_shared<Player>(2));
 std::shared_ptr<Player> currentplayer;
 int currentAssignedPlayer = 0;
 
-bool isServer, isClient;
 char ip[16];
 char name[16];
+
+bool gameStarted = false;
 
 int current_players = 0;
 std::string playerNames[8];
 
-bool isHelloSent = false;
 int numberHousesToGenerate = 20;
-
 
 void GameEngine::GameStart()
 {
@@ -63,26 +62,18 @@ void GameEngine::GameLoop()
 {
 	X::Run(GameLoopInitial);
 
-	//auto gl = std::bind(&GameLoopInitial);
-	//X::Run((std::function<bool(float)>&)gl);
+	if (pCommPort != nullptr) {
+		X::Run(GameLoopLobby);
 
-	X::Run(GameLoopLobby);
-
-	if (!pCommPort->isServer()) {
-		while (!isHelloSent)
-		{
-			X::Run(GameLoopInitial);
-			X::Run(GameLoopLobby);
-		}
+		//GameInitSinglePlayer();	//for single player
+		if (gameStarted)
+			X::Run(GameLoopMultiPlayer);
 	}
-
-	//GameInitSinglePlayer();	//for single player
-	X::Run(GameLoopMultiPlayer);
 }
 
 void GameEngine::GameEnd()
 {
-	//GameCleanup();
+	GameCleanup();
 	X::Stop();
 }
 
@@ -100,31 +91,34 @@ bool GameEngine::GameLoopInitial(float deltaTime)
 		ImGui::InputText("ip address", ip, 16);
 		ImGui::InputText("your name", name, 16);
 	}
-
 	//if (typeInterface == 1 || (typeInterface == 2 && ip[0] != '\0' && name[0] != '\0')) {
-	if (typeInterface == 1 || (typeInterface == 2 && name[0] != '\0')) {
+	//if (typeInterface == 1 || (typeInterface == 2 && name[0] != '\0')) {
 
-		if (ImGui::Button("Connect")) {
+	if (ImGui::Button("Connect")) {
 
-			if (typeInterface == 2)
-			{
-				sprintf_s(ip, "127.0.0.1", 16);
-				//sprintf_s(ip, "10.0.0.210", 16);
-				isClient = true;
-				isServer = false;
-			}
-			else
-			{
-				sprintf_s(ip, "0");
-				isClient = false;
-				isServer = true;
-			}
-			pCommPort = std::make_unique<NetworkInterface>(ip, DefaultPort);
-			//pCommPort = new NetworkInterface(ip, DefaultPort);
-			ImGui::End();
-			return true;
+		if (typeInterface == 2)
+		{
+			//sprintf_s(name, "memo", 16);
+			//sprintf_s(ip, "127.0.0.1", 16);
+			//sprintf_s(ip, "10.0.0.210", 16);
 		}
+		else
+		{
+			sprintf_s(ip, "0");
+		}
+
+		if (!pCommPort)
+			pCommPort = std::make_unique<NetworkInterface>(ip, DefaultPort);
+
+		ImGui::End();
+
+		if (!pCommPort->isServer())
+			if (!pCommPort->ClientLobbySendHello(name, currentAssignedPlayer, playerNames))
+				return false;
+
+		return true;
 	}
+	//}
 	ImGui::End();
 
 	return X::IsKeyPressed(X::Keys::ESCAPE);
@@ -133,41 +127,22 @@ bool GameEngine::GameLoopInitial(float deltaTime)
 bool GameEngine::GameLoopLobby(float deltaTime)
 {
 	ImGui::Begin("Game configuration", nullptr);
-	if (isServer) {
+	if (pCommPort->isServer()) {
 		X::DrawScreenText("Waiting for clients...", 200.0f, 100.0f, 20.f, X::Colors::White);
 		pCommPort->ServerLobbyWaitHello(players, current_players, playerNames, playerColors);
 	}
 	else
 	{
-		if (!isHelloSent)
-		{
-			isHelloSent = pCommPort->ClientLobbySendHello(name, currentAssignedPlayer, playerNames);
-
-			if (!isHelloSent) {
-				if (ImGui::Button("couldnt connect. Click to try again?"))
-				{
-					//X::Run(GameLoopInitial);
-					//X::Run(GameLoopLobby);
-
-					return true;
-				}
-			}
-		}
-
 		if (currentAssignedPlayer > 0) {
 
 			std::string multiMessage;
-
-			if (pCommPort->isServer())
-				multiMessage.append("Server");
-			else {
-				std::string tmp = { name };
-				multiMessage.append("Welcome player " + tmp);
-			}
-			//multiMessage.append("Welcome player " + std::to_string(currentAssignedPlayer));
-
+			multiMessage.append("Welcome player " + std::string(name));
 
 			X::DrawScreenText(multiMessage.c_str(), 200.0f, 50.0f, 30.f, playerColors[currentAssignedPlayer]);
+
+			const char* monsterTypes[] = { "Skeleton", "Pumpkinhead", "Ghost", "Alien" };
+			static int current_monster = 0;
+			ImGui::Combo("Monster type", &current_monster, monsterTypes, IM_ARRAYSIZE(monsterTypes));
 
 			if (pCommPort->ClientLobbyReceiveUpdate(current_players, playerNames, houses, world, players, playerColors))
 			{
@@ -179,6 +154,7 @@ bool GameEngine::GameLoopLobby(float deltaTime)
 				assignCurrentPlayersToHouses(current_players);
 				currentplayer = players[currentAssignedPlayer - 1];
 				ImGui::End();
+				gameStarted = true;
 				return true;
 			}
 		}
@@ -197,7 +173,7 @@ bool GameEngine::GameLoopLobby(float deltaTime)
 
 	if (pCommPort->isServer()) {
 		if (current_players > 0) {
-			X::DrawScreenText(players[0]->GetName().c_str(), 200.0f, 200.0f, 20.f, playerColors[0]);
+			//X::DrawScreenText(players[0]->GetName().c_str(), 200.0f, 200.0f, 20.f, playerColors[0]);
 		}
 
 		//		ImGui::Begin("Game configuration", nullptr);
@@ -217,6 +193,7 @@ bool GameEngine::GameLoopLobby(float deltaTime)
 
 				currentplayer = players[current_players - 1];
 				ImGui::End();
+				gameStarted = true;
 				return true;
 			}
 		}
@@ -404,7 +381,8 @@ bool GameEngine::GameLoopMultiPlayer(float deltaTime)
 
 bool GameEngine::GameCleanup()
 {
-	pCommPort->m_socket.Close();
+	if (pCommPort != nullptr)
+		pCommPort->m_socket.Close();
 	return true;
 }
 

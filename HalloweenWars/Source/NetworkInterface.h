@@ -44,6 +44,9 @@ public:
 	bool ClientGameReceiveHouseUpdate(std::vector<std::shared_ptr<House>>& houses, std::vector<std::shared_ptr<Player>>& players);
 	bool ClientGameSendCommand(int idPlayer, int idHouseOrigin, int idHouseDestination, int percentage);
 
+	void serializeLocalSample(char* buf);
+
+
 	CSocket m_socket;
 	std::vector<PlayerN> mPlayers;
 	//std::vector<std::unique_ptr<Player>> mPlayers;
