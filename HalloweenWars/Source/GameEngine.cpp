@@ -50,6 +50,7 @@ bool gameStarted = false;
 
 int current_players = 0;
 std::string playerNames[8];
+int playerMonster[8];
 
 int numberHousesToGenerate = 20;
 
@@ -98,8 +99,8 @@ bool GameEngine::GameLoopInitial(float deltaTime)
 
 		if (typeInterface == 2)
 		{
-			//sprintf_s(name, "memo", 16);
-			//sprintf_s(ip, "127.0.0.1", 16);
+			sprintf_s(name, "memo", 16);
+			sprintf_s(ip, "127.0.0.1", 16);
 			//sprintf_s(ip, "10.0.0.210", 16);
 		}
 		else
@@ -127,9 +128,11 @@ bool GameEngine::GameLoopInitial(float deltaTime)
 bool GameEngine::GameLoopLobby(float deltaTime)
 {
 	ImGui::Begin("Game configuration", nullptr);
+	const char* monsterTypes[] = { "Skeleton", "Pumpkinhead", "Ghost", "Alien" };
+
 	if (pCommPort->isServer()) {
 		X::DrawScreenText("Waiting for clients...", 200.0f, 100.0f, 20.f, X::Colors::White);
-		pCommPort->ServerLobbyWaitHello(players, current_players, playerNames, playerColors);
+		pCommPort->ServerLobbyWaitHello(players, current_players, playerNames, playerColors, playerMonster);
 	}
 	else
 	{
@@ -140,11 +143,19 @@ bool GameEngine::GameLoopLobby(float deltaTime)
 
 			X::DrawScreenText(multiMessage.c_str(), 200.0f, 50.0f, 30.f, playerColors[currentAssignedPlayer]);
 
-			const char* monsterTypes[] = { "Skeleton", "Pumpkinhead", "Ghost", "Alien" };
+
 			static int current_monster = 0;
+
+			int previuosMonster = current_monster;
 			ImGui::Combo("Monster type", &current_monster, monsterTypes, IM_ARRAYSIZE(monsterTypes));
 
-			if (pCommPort->ClientLobbyReceiveUpdate(current_players, playerNames, houses, world, players, playerColors))
+			if (previuosMonster != current_monster)
+			{
+				pCommPort->ClientLobbyUpdateMonsterType(currentAssignedPlayer, current_monster);
+			}
+
+
+			if (pCommPort->ClientLobbyReceiveUpdate(current_players, playerNames, houses, world, players, playerColors, playerMonster))
 			{
 				world.Initialize({
 					(float)X::GetScreenWidth(),
@@ -166,7 +177,7 @@ bool GameEngine::GameLoopLobby(float deltaTime)
 
 	float offsetY = 30.0f;
 	for (int i = 1; i < current_players + 1; ++i) {
-		multiMessage = "Player " + std::to_string(i) + " = " + playerNames[i];
+		multiMessage = "Player " + std::to_string(i) + " = " + playerNames[i] + " Monster Type: " + monsterTypes[playerMonster[i]];
 		X::DrawScreenText(multiMessage.c_str(), 200.0f, 130.0f + offsetY, 20.f, playerColors[i]);
 		offsetY += 30.0f;
 	}

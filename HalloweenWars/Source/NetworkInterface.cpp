@@ -23,6 +23,7 @@ struct ClientInitialHello
 {
 	int idPlayer;
 	char name[16];
+	int idMonster;
 };
 
 struct PlayerN {
@@ -212,7 +213,7 @@ bool NetworkInterface::Initialized() const
 
 }
 
-bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>& players, int& current_players, std::string* playerNames, X::Color* playerColors)
+bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>& players, int& current_players, std::string* playerNames, X::Color* playerColors, int* playerMonster)
 {
 	if (!this || !this->Initialized())
 	{
@@ -245,7 +246,7 @@ bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>
 			player->SetColor(playerColors[numPlayerSender]);
 			player->SetName(clientHello->name);
 
-			char bufReply[32]{ 0 };
+			char bufReply[64]{ 0 };
 
 			Header header;
 			header.id = 1;
@@ -273,6 +274,11 @@ bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>
 
 		}
 
+		if (header->id == 3)
+		{
+			playerMonster[clientHello->idPlayer] = clientHello->idMonster;
+		}
+
 
 		char bufPlayers[512]{ 0 };
 
@@ -291,6 +297,8 @@ bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>
 			ClientInitialHello hello;
 			hello.idPlayer = players[i]->GetId();
 			strcpy_s(hello.name, players[i]->GetName().c_str());
+			hello.idMonster = playerMonster[i+1];
+
 			const auto clientInitialHelloSize{ sizeof(ClientInitialHello) };
 			//memcpy_s(bufPlayers + headerSize, clientInitialHelloSize, &hello, clientInitialHelloSize);
 
@@ -353,7 +361,7 @@ bool NetworkInterface::ClientLobbySendHello(char* name, int& currentAssignedPlay
 		return false;
 	}
 
-	char buftest[32]{ 0 };
+	char buftest[64]{ 0 };
 
 	Header header;
 	header.id = 1;
@@ -425,7 +433,7 @@ bool NetworkInterface::ClientLobbySendHello(char* name, int& currentAssignedPlay
 
 
 // client could receive hello update or Init game update from server
-bool NetworkInterface::ClientLobbyReceiveUpdate(int& current_players, std::string* playerNames, std::vector<std::shared_ptr<House>>& houses, AI::AIWorld& world, std::vector<std::shared_ptr<Player>>& players, X::Color* playerColors)
+bool NetworkInterface::ClientLobbyReceiveUpdate(int& current_players, std::string* playerNames, std::vector<std::shared_ptr<House>>& houses, AI::AIWorld& world, std::vector<std::shared_ptr<Player>>& players, X::Color* playerColors, int* playerMonster)
 {
 	if (!this || !this->Initialized())
 	{
@@ -464,6 +472,7 @@ bool NetworkInterface::ClientLobbyReceiveUpdate(int& current_players, std::strin
 			ClientInitialHello* b = reinterpret_cast<ClientInitialHello*>(buf + sizeof(Header) + (i * playerSize));
 
 			playerNames[b->idPlayer] = b->name;
+			playerMonster[b->idPlayer] = b->idMonster;
 			//playerNames[b->GetId()] = b->GetName();
 			//b->
 			//auto& house = houses.emplace_back(std::make_shared<House>(world));
@@ -549,6 +558,36 @@ bool NetworkInterface::ServerLobbySendInitGame(std::vector<std::shared_ptr<House
 	}
 	//X::DrawScreenText(std::to_string(sizeof(BUpdate) * testscvs.size()).c_str(), 100.0f, 100.0f, 20.f, X::Colors::White);
 	this->sendDataBroadcast((char*)&houseVector[0], sizeof(HouseInitialUpdate) * houseVector.size());
+
+	return true;
+}
+
+bool NetworkInterface::ClientLobbyUpdateMonsterType(int player, int monsterType)
+{
+	if (!this || !this->Initialized())
+	{
+		std::cerr << "ClientLobbyUpdateMonsterType()::pCommPort not initialized yet!\n";
+		return false;
+	}
+
+	char buftest[64]{ 0 };
+
+	Header header;
+	header.id = 3;
+	header.qty = 1;
+	const auto headerSize{ sizeof(Header) };
+	memcpy_s(buftest, headerSize, &header, headerSize);
+
+	ClientInitialHello hello;
+	hello.idPlayer = player;
+	hello.idMonster = monsterType;
+	//strcpy_s(hello.name, name);
+	const auto clientInitialHelloSize{ sizeof(ClientInitialHello) };
+	memcpy_s(buftest + headerSize, clientInitialHelloSize, &hello, clientInitialHelloSize);
+
+	//memcpy_s(buftest + headerSize, sizeof(name), &name, sizeof(name));
+	this->sendData(buftest, sizeof(buftest));
+	//this->sendData(initialHello, std::strlen(initialHello));
 
 	return true;
 }
