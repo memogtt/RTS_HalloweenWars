@@ -24,7 +24,19 @@ X::TextureId textura = 0;
 std::unique_ptr<NetworkInterface> pCommPort;
 const unsigned short DefaultPort = 8889;
 
-X::Color playerColors[] = {
+std::array<X::Color, 9> playerColors2  {
+	X::Colors::White,
+	X::Colors::Blue,
+	X::Colors::Red,
+	X::Colors::Green,
+	X::Colors::Yellow,
+	X::Colors::Pink,
+	X::Colors::Orange,
+	X::Colors::Turquoise,
+	X::Colors::Violet
+};
+
+ X::Color playerColors[9] = {
 	X::Colors::White,
 	X::Colors::Blue,
 	X::Colors::Red,
@@ -50,13 +62,22 @@ bool gameStarted = false;
 
 int current_players = 0;
 std::string playerNames[8];
-int playerMonster[8];
+std::array<int, 8> playerMonster;
+//int playerMonster[8];
 
 int numberHousesToGenerate = 20;
+
+static int current_monster = 0;
+std::array<X::TextureId, 4> mTextureIds;
 
 void GameEngine::GameStart()
 {
 	X::Start();
+
+	mTextureIds[0] = X::LoadTexture("HW/monster_01_skeleton.png");
+	mTextureIds[1] = X::LoadTexture("HW/monster_02_pumpkinhead.png");
+	mTextureIds[2] = X::LoadTexture("HW/monster_03_ghost.png");
+	mTextureIds[3] = X::LoadTexture("HW/monster_04_alien.png");
 }
 
 void GameEngine::GameLoop()
@@ -99,8 +120,8 @@ bool GameEngine::GameLoopInitial(float deltaTime)
 
 		if (typeInterface == 2)
 		{
-			sprintf_s(name, "memo", 16);
-			sprintf_s(ip, "127.0.0.1", 16);
+			//sprintf_s(name, "memo", 16);
+			//sprintf_s(ip, "127.0.0.1", 16);
 			//sprintf_s(ip, "10.0.0.210", 16);
 		}
 		else
@@ -108,7 +129,7 @@ bool GameEngine::GameLoopInitial(float deltaTime)
 			sprintf_s(ip, "0");
 		}
 
-		if (!pCommPort)
+		//if (!pCommPort)
 			pCommPort = std::make_unique<NetworkInterface>(ip, DefaultPort);
 
 		ImGui::End();
@@ -144,7 +165,7 @@ bool GameEngine::GameLoopLobby(float deltaTime)
 			X::DrawScreenText(multiMessage.c_str(), 200.0f, 50.0f, 30.f, playerColors[currentAssignedPlayer]);
 
 
-			static int current_monster = 0;
+
 
 			int previuosMonster = current_monster;
 			ImGui::Combo("Monster type", &current_monster, monsterTypes, IM_ARRAYSIZE(monsterTypes));
@@ -252,8 +273,7 @@ bool GameEngine::GameLoopMultiPlayer(float deltaTime)
 		if (players.empty())
 			return true;
 
-		for (auto& scv : scvs) {
-			int i = 1;
+		for (auto& scv : scvs) {			
 			if (scv->checkCollision())
 			{
 				auto iter = std::find(scvs.begin(), scvs.end(), scv);
@@ -282,7 +302,7 @@ bool GameEngine::GameLoopMultiPlayer(float deltaTime)
 	}
 	else
 	{
-		pCommPort->ClientGameReceiveHouseUpdate(houses, players);
+		pCommPort->ClientGameReceiveHouseUpdate(houses, players, mTextureIds, playerMonster, playerColors2);
 	}
 
 

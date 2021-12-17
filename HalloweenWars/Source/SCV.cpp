@@ -33,12 +33,12 @@ void SCV::Initialize()
 	mAlignmentBehavior = mSteeringModule->AddBehavior<AI::AlignmentBehavior>();
 	mCohesionBehavior = mSteeringModule->AddBehavior<AI::CohesionBehavior>();
 
-	for (size_t i = 0; i < mTextureIds.size(); ++i)
-	{
-		char name[256];
-		sprintf_s(name, "cat_%02zu.png", i + 1);
-		mTextureIds[i] = X::LoadTexture(name);
-	}
+	//for (size_t i = 0; i < mTextureIds.size(); ++i)
+	//{
+	//	char name[256];
+	//	sprintf_s(name, "cat_%02zu.png", i + 1);
+	//	mTextureIds[i] = X::LoadTexture(name);
+	//}
 }
 
 bool SCV::checkCollision()
@@ -101,8 +101,8 @@ void SCV::Update(float deltaTime)
 void SCV::Render()
 {
 	float angle = atan2(-heading.x, heading.y) + X::Math::kPi;
-	int frame = (int)(angle / X::Math::kTwoPi * mTextureIds.size()) % mTextureIds.size();
-	X::DrawSprite(mTextureIds[frame], position);
+	//int frame = (int)(angle / X::Math::kTwoPi * mTextureIds.size()) % mTextureIds.size();
+	//X::DrawSprite(mTextureIds[frame], position);
 
 	//X::DrawScreenLine(position, position + heading * 100.0f, X::Colors::Red);
 	//X::DrawScreenLine(position, position + heading * 100.0f, mOwner->GetColor());

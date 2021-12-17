@@ -96,3 +96,17 @@ Build/Debug/x64/HalloweenWars.exp
 Build/Debug/x64/HalloweenWars.pdb
 X/x64/Debug/X.log
 *.pdb
+X/External/DirectXTK/Audio/Bin/Desktop_2017/x64/Release/DirectXTKAudioWin8.lib
+X/External/DirectXTK/Audio/Bin/Desktop_2017/x64/Release/DirectXTKAudioWin8.lib.recipe
+X/External/DirectXTK/Bin/Desktop_2017/x64/Release/DirectXTK.lib
+X/External/DirectXTK/Bin/Desktop_2017/x64/Release/DirectXTK.lib.recipe
+X/External/FW1FontWrapper/x64/Release/FW1FontWrapper.lib.recipe
+X/x64/Release/X.lib.recipe
+X/External/ImGui/x64/Release/ImGui.lib.recipe
+x64/Release/AI.lib
+x64/Release/FW1FontWrapper.lib
+x64/Release/ImGui.lib
+x64/Release/X.lib
+Build/Release/x64/imgui.ini
+Build/Release/x64/HalloweenWars.lib
+Build/Release/x64/HalloweenWars.exp

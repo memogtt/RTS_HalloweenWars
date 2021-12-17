@@ -12,7 +12,7 @@ House::House(AI::AIWorld& world)
 
 void House::Initialize()
 {
-	mTextureId = X::LoadTexture("refinery_05.png");
+	//mTextureId = X::LoadTexture("refinery_05.png");
 	mCollisionCircle.center = { position.x,position.y };
 	mCollisionCircle.radius = { radius };
 
