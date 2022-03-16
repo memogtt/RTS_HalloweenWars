@@ -12,6 +12,7 @@ namespace Core
 	private:
 		static bool GameLoopInitial(float deltaTime);
 		static bool GameLoopLobby(float deltaTime);
+		static bool GameLoopInitialSinglePlayer(float deltaTime);
 		static bool GameLoopSinglePlayer(float deltaTime);
 		static bool GameLoopMultiPlayer(float deltaTime);
 		static bool GameCleanup();
@@ -19,6 +20,6 @@ namespace Core
 		// Utility methods
 		static int checkWinCondition();
 		static void generateHouses(int num);
-		static void assignCurrentPlayersToHouses(int num);
+		static void assignCurrentPlayersToHouses(int num, bool singlePlayer = false);
 	};
 }

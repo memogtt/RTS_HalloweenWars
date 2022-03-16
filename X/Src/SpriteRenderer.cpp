@@ -158,12 +158,12 @@ void SpriteRenderer::EndRender()
 }
 
 //----------------------------------------------------------------------------------------------------
-void SpriteRenderer::Draw(const Texture& texture, const Math::Vector2& pos, float rotation, Pivot pivot, Flip flip)
+void SpriteRenderer::Draw(const Texture& texture, const Math::Vector2& pos, float rotation, Pivot pivot, Flip flip, float scale)
 {
 	XASSERT(mSpriteBatch != nullptr, "[SpriteRenderer] Not initialized.");
 	DirectX::XMFLOAT2 origin = GetOrigin(texture.GetWidth(), texture.GetHeight(), pivot);
 	DirectX::SpriteEffects effects = GetSpriteEffects(flip);
-	mSpriteBatch->Draw(texture.mShaderResourceView, ToXMFLOAT2(pos), nullptr, DirectX::Colors::White, rotation, origin, 1.0f, effects);
+	mSpriteBatch->Draw(texture.mShaderResourceView, ToXMFLOAT2(pos), nullptr, DirectX::Colors::White, rotation, origin, scale, effects);
 }
 
 //----------------------------------------------------------------------------------------------------

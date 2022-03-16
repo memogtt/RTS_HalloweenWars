@@ -42,7 +42,7 @@ public:
 	bool ServerGameSendHouseUpdate(std::vector<std::shared_ptr<House>>& houses);
 	bool ServerGameSendMonsterUpdate(std::vector<std::unique_ptr<SCV>>& scvs);
 	bool ServerGameReceiveCommand(std::vector<std::shared_ptr<House>>& houses, std::vector<std::unique_ptr<SCV>>& scvs, std::vector<std::shared_ptr<Player>>& players, AI::AIWorld& world);
-	bool ClientGameReceiveHouseUpdate(std::vector<std::shared_ptr<House>>& houses, std::vector<std::shared_ptr<Player>>& players, std::array<X::TextureId, 4>& monsterTextures, std::array<int, 8>& playerMonster, std::array<X::Color, 9>& playerColors);
+	bool ClientGameReceiveHouseUpdate(std::vector<std::shared_ptr<House>>& houses, std::vector<std::shared_ptr<Player>>& players, std::array<X::TextureId, 12>& monsterTextures, std::array<int, 8>& playerMonster, std::array<X::Color, 9>& playerColors);
 	bool ClientGameSendCommand(int idPlayer, int idHouseOrigin, int idHouseDestination, int percentage);
 
 	void serializeLocalSample(char* buf);
@@ -52,5 +52,6 @@ public:
 	std::vector<PlayerN> mPlayers;
 	//std::vector<std::unique_ptr<Player>> mPlayers;
 	int currentPlayers;
+	int animLoop = 1;
 
 };

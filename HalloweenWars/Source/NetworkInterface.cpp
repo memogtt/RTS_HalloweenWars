@@ -60,6 +60,7 @@ struct BUpdate // used for sending and receiving frame ball updates.
 	X::Math::Vector2 pos;
 	//X::Color color;
 	int ownerId;
+	int animId;
 };
 
 struct AttackUpdate
@@ -642,7 +643,7 @@ bool NetworkInterface::ServerGameSendMonsterUpdate(std::vector<std::unique_ptr<S
 
 		const auto headerSize{ sizeof(Header) };
 		const auto bUpdateSize{ sizeof(BUpdate) };
-		
+
 		int loops = ceil((bUpdateSize * static_cast<float>(size)) / 992.0f);
 		int count_in_chunk_size = 992 / bUpdateSize;
 		//assert(hCount * bUpdateSize == bytes);
@@ -650,7 +651,7 @@ bool NetworkInterface::ServerGameSendMonsterUpdate(std::vector<std::unique_ptr<S
 
 		const int test = scvs.size();
 		std::vector<BUpdate> testin;
-		
+
 		testin.reserve(scvs.size());
 		for (auto& scv : scvs) {
 			auto& tmp = testin.emplace_back();
@@ -658,6 +659,7 @@ bool NetworkInterface::ServerGameSendMonsterUpdate(std::vector<std::unique_ptr<S
 			//tmp.dest = scv->destination;
 			//tmp.color = scv->GetOwner()->GetColor();
 			tmp.ownerId = scv->GetOwner()->GetId();
+			tmp.animId = scv->animId;
 		}
 		if (loops == 1)
 		{
@@ -679,13 +681,14 @@ bool NetworkInterface::ServerGameSendMonsterUpdate(std::vector<std::unique_ptr<S
 				Header header;
 				header.id = 5;
 				//X::DrawScreenText(std::to_string(sizeof(BUpdate) * testscvs.size()).c_str(), 100.0f, 100.0f, 20.f, X::Colors::White);
-				if (i == loops)
+				if (i == loops - 1)
 				{
 					header.qty = size - (i * count_in_chunk_size);
 					memcpy_s(buftest, headerSize, &header, headerSize);
 
 					memcpy_s(buftest + headerSize, bUpdateSize * (size - (i * count_in_chunk_size)), (char*)&testin[i * count_in_chunk_size], bUpdateSize * (size - (i * count_in_chunk_size)));
 					//this->sendDataBroadcast((char*)&testin[i * count_in_chunk_size], sizeof(BUpdate) * (size - (i * count_in_chunk_size)));
+					this->sendDataBroadcast(buftest, sizeof(buftest));
 				}
 				else
 				{
@@ -694,17 +697,19 @@ bool NetworkInterface::ServerGameSendMonsterUpdate(std::vector<std::unique_ptr<S
 
 					memcpy_s(buftest + headerSize, bUpdateSize * count_in_chunk_size, (char*)&testin[i * count_in_chunk_size], bUpdateSize * count_in_chunk_size);
 					//this->sendDataBroadcast((char*)&testin[i * count_in_chunk_size], sizeof(BUpdate) * count_in_chunk_size);
+					this->sendDataBroadcast(buftest, sizeof(buftest));
 				}
 
-				this->sendDataBroadcast(buftest, sizeof(buftest));
+				//this->sendDataBroadcast(buftest, sizeof(buftest));
 			}
 
-			
+
 		}
 	}
 	return true;
 }
 
+//std::vector<char> staging;
 bool NetworkInterface::ServerGameReceiveCommand(std::vector<std::shared_ptr<House>>& houses, std::vector<std::unique_ptr<SCV>>& scvs, std::vector<std::shared_ptr<Player>>& players, AI::AIWorld& world)
 {
 	if (!this || !this->Initialized())
@@ -713,21 +718,56 @@ bool NetworkInterface::ServerGameReceiveCommand(std::vector<std::shared_ptr<Hous
 		return false;
 	}
 
-	char buf[1024]{ 0 };
-	int bytes = this->recvData(buf, 1024);
+	char buf[64]{ 0 };
+	int bytes = this->recvData(buf, 64);
 	while (bytes > 0)
 	{
-		auto bSize{ sizeof(AttackUpdate) };
-		AttackUpdate* b = reinterpret_cast<AttackUpdate*>(buf);
+		Header* headerReply = reinterpret_cast<Header*>(buf);
 
-		houses[b->idHouseOrigin]->sendMonsters(world, houses[b->idHouseDestination], players[b->idPlayer - 1], scvs, b->percentage);
-		bytes = this->recvData(buf, 1024);
+
+		if (headerReply->id == 6)
+		{
+			auto hSize{ sizeof(AttackUpdate) };
+			for (int i = 0; i < headerReply->qty; ++i)
+			{
+				//auto bSize{ sizeof(AttackUpdate) };
+				AttackUpdate* b = reinterpret_cast<AttackUpdate*>(buf + sizeof(Header) + (i * hSize));
+
+				houses[b->idHouseOrigin]->sendMonsters(world, houses[b->idHouseDestination], players[b->idPlayer - 1], scvs, b->percentage);
+			}
+		}
+		bytes = this->recvData(buf, 64);
+		//auto size = staging.size();
+		//staging.resize(size + bytes);
+		//memcpy_s(staging.data() + size, bytes, buf, bytes);
+
+		//if (staging.size() >= sizeof(AttackUpdate))
+		//{
+		//	AttackUpdate* b = reinterpret_cast<AttackUpdate*>(staging.data());
+
+		//	staging.erase(staging.begin(), staging.begin() + size);
+		//}
+		//// Send [AttackUpdate] ------>
+		//// Recv      <--------   [Atta]
+		//// Recv      <--------   [ckUpd]
+		//// Recv      <--------   [ate]
+
+
+		//// Send [AttackUpdate] ------>
+		//// Send [AttackUpdate] ------>
+		//// Recv      <--------   [AttackUpdateAttackUpdate]
+
+		//auto bSize{ sizeof(AttackUpdate) };
+		//AttackUpdate* b = reinterpret_cast<AttackUpdate*>(buf);
+
+		//houses[b->idHouseOrigin]->sendMonsters(world, houses[b->idHouseDestination], players[b->idPlayer - 1], scvs, b->percentage);
+		//bytes = this->recvData(buf, 1024);
 	}
 
 	return true;
 }
 
-bool NetworkInterface::ClientGameReceiveHouseUpdate(std::vector<std::shared_ptr<House>>& houses, std::vector<std::shared_ptr<Player>>& players, std::array<X::TextureId, 4>& monsterTextures, std::array<int, 8>& playerMonster, std::array<X::Color, 9>& playerColors)
+bool NetworkInterface::ClientGameReceiveHouseUpdate(std::vector<std::shared_ptr<House>>& houses, std::vector<std::shared_ptr<Player>>& players, std::array<X::TextureId, 12>& monsterTextures, std::array<int, 8>& playerMonster, std::array<X::Color, 9>& playerColors)
 {
 	if (!this || !this->Initialized())
 	{
@@ -773,10 +813,11 @@ bool NetworkInterface::ClientGameReceiveHouseUpdate(std::vector<std::shared_ptr<
 			{
 				BUpdate* b = reinterpret_cast<BUpdate*>(buf + headerSize + (i * bSize));
 				//X::DrawSprite(textura, b->pos);
-				if (b->pos.x >= 0 && b->pos.x <= 1280 && b->pos.y >= 0 && b->pos.y <= 720 && b->ownerId>0 && b->ownerId < 9) {
-					X::DrawScreenCircle({ b->pos,20.0f }, playerColors[b->ownerId]);
-					if (b->ownerId > 0 && b->ownerId < 5)
-						X::DrawSprite(monsterTextures[playerMonster[b->ownerId]], b->pos);
+				if (b->pos.x >= 0 && b->pos.x <= 1280 && b->pos.y >= 0 && b->pos.y <= 720 && b->ownerId > 0 && b->ownerId < 9) {
+					//X::DrawScreenCircle({ b->pos,20.0f }, playerColors[b->ownerId]);
+					if (b->ownerId > 0 && b->ownerId < 5) {
+						X::DrawSprite(monsterTextures[playerMonster[b->ownerId]+(4*b->animId)], b->pos);
+					}
 				}
 
 			}
@@ -796,13 +837,34 @@ bool NetworkInterface::ClientGameSendCommand(int idPlayer, int idHouseOrigin, in
 		return false;
 	}
 
+	char buftest[64]{ 0 };
+
+	Header header;
+	header.id = 6;
+	header.qty = 1;
+	const auto headerSize{ sizeof(Header) };
+	memcpy_s(buftest, headerSize, &header, headerSize);
+
+	//ClientInitialHello hello;
+	//hello.idPlayer = 0;
+	//strcpy_s(hello.name, name);
+	//const auto clientInitialHelloSize{ sizeof(ClientInitialHello) };
+	//memcpy_s(buftest + headerSize, clientInitialHelloSize, &hello, clientInitialHelloSize);
+
+	////memcpy_s(buftest + headerSize, sizeof(name), &name, sizeof(name));
+	//this->sendData(buftest, sizeof(buftest));
+
 	AttackUpdate attack;
 	attack.idPlayer = idPlayer;
 	attack.idHouseOrigin = idHouseOrigin;
 	attack.idHouseDestination = idHouseDestination;
 	attack.percentage = percentage;
+	const auto attackUpdateSize{ sizeof(AttackUpdate) };
+	memcpy_s(buftest + headerSize, attackUpdateSize, &attack, attackUpdateSize);
 
-	this->sendData((char*)&attack, sizeof(AttackUpdate));
+	this->sendData(buftest, sizeof(buftest));
+
+	//this->sendData((char*)&attack, sizeof(AttackUpdate));
 
 	return true;
 }

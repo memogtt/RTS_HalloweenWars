@@ -9,6 +9,11 @@
     <ClCompile Include="Source\NetworkInterface.cpp" />
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\SCV.cpp" />
+    <ClCompile Include="Source\HouseSpin.cpp" />
+    <ClCompile Include="Source\HouseAnim0.cpp" />
+    <ClCompile Include="Source\HouseAnim1.cpp" />
+    <ClCompile Include="Source\HouseAnim2.cpp" />
+    <ClCompile Include="Source\SCVSkeleton.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Address.h" />
@@ -19,5 +24,10 @@
     <ClInclude Include="Source\Player.h" />
     <ClInclude Include="Source\SCV.h" />
     <ClInclude Include="Source\TypeIds.h" />
+    <ClInclude Include="Source\HouseSpin.h" />
+    <ClInclude Include="Source\HouseAnim0.h" />
+    <ClInclude Include="Source\HouseAnim1.h" />
+    <ClInclude Include="Source\HouseAnim2.h" />
+    <ClInclude Include="Source\SCVSkeleton.h" />
   </ItemGroup>
 </Project>

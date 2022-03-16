@@ -48,11 +48,14 @@ public:
 	X::Math::Circle getCircle() { return mCollisionCircle; }
 
 	void SetNetworkHouseId(const int id) { mNetworkHouseId = id; }
-	const int GetNetworkHouseId() const { return mNetworkHouseId; }
+	const int GetNetworkHouseId() const { return mNetworkHouseId; }	
+
+	std::unique_ptr<AI::StateMachine<House>> mStateMachine;
+	X::TextureId mTextureId = 0;
+
 private:
 	//std::unique_ptr<AI::SteeringModule> mSteeringModule;
 	//std::array<X::TextureId, 16> mTextureIds;
-	X::TextureId mTextureId = 0;
 	X::Math::Circle mCollisionCircle{ position.x,position.y,radius };
 	float mRegenRate = 0.0f;
 	float mUnits = 0.0f;

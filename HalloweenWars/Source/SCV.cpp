@@ -5,6 +5,8 @@
 #include "TypeIds.h"
 #include <ImGui/Inc/imgui.h>
 
+#include "SCVSkeleton.h"
+
 SCV::SCV(AI::AIWorld& world)
 	: AI::Agent(world, TypeIds::SCV)//, mPlayerOwner(2)
 {
@@ -13,6 +15,15 @@ SCV::SCV(AI::AIWorld& world)
 void SCV::Initialize()
 {
 	maxSpeed = 200.0f;
+
+	mStateMachine = std::make_unique<AI::StateMachine<SCV>>(*this);
+	//mStateMachine->AddState<HouseSpin>();
+	mStateMachine->AddState<SCVSkeleton>();
+	//mStateMachine->AddState<SCVPumpkinhead>();
+	//mStateMachine->AddState<SCVGhost>();
+	//mStateMachine->AddState<SCVAlien>();
+
+	mStateMachine->ChangeState(SCVSkeleton::GetName());
 
 	mSteeringModule = std::make_unique<AI::SteeringModule>(*this);
 	mSeekBehavior = mSteeringModule->AddBehavior<AI::SeekBehavior>();
@@ -32,6 +43,11 @@ void SCV::Initialize()
 	//mSeparationBehavior->SetActive(true);
 	mAlignmentBehavior = mSteeringModule->AddBehavior<AI::AlignmentBehavior>();
 	mCohesionBehavior = mSteeringModule->AddBehavior<AI::CohesionBehavior>();
+
+	mSeekBehavior->EnableDebug(false);
+	mSeparationBehavior->EnableDebug(false);
+
+
 
 	//for (size_t i = 0; i < mTextureIds.size(); ++i)
 	//{
@@ -96,6 +112,8 @@ void SCV::Update(float deltaTime)
 	if (position.y < 0.0f)
 		position.y += screenHeight;
 
+	mStateMachine->Update(deltaTime);
+
 }
 
 void SCV::Render()
@@ -106,7 +124,9 @@ void SCV::Render()
 
 	//X::DrawScreenLine(position, position + heading * 100.0f, X::Colors::Red);
 	//X::DrawScreenLine(position, position + heading * 100.0f, mOwner->GetColor());
-	X::DrawScreenCircle({ position.x,position.y,20.0f }, mOwner->GetColor());
+	//X::DrawScreenCircle({ position.x,position.y,20.0f }, mOwner->GetColor());
+
+	X::DrawSprite(mTextureId, position, X::Pivot::Center, X::Flip::None);
 }
 
 void SCV::SetActiveBehaviors(bool seekActive, bool arriveActive, bool wanderActive, bool collisionActive,

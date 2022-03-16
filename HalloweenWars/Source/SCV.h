@@ -25,6 +25,11 @@ public:
 	void SetOwner(std::shared_ptr<Player> p) { mOwner = p; }
 
 	std::shared_ptr<Player>& GetOwner() { return mOwner; }
+
+	std::unique_ptr<AI::StateMachine<SCV>> mStateMachine;
+	X::TextureId mTextureId = 0;
+	int animId = 0;
+
 private:
 	std::unique_ptr<AI::SteeringModule> mSteeringModule;
 	std::array<X::TextureId, 4> mTextureIds;

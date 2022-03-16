@@ -3,6 +3,10 @@
 #include "TypeIds.h"
 #include "Player.h"
 #include "SCV.h"
+#include "HouseSpin.h"
+#include "HouseAnim0.h"
+#include "HouseAnim1.h"
+#include "HouseAnim2.h"
 //#include <ImGui/Inc/imgui.h>
 
 House::House(AI::AIWorld& world)
@@ -12,6 +16,18 @@ House::House(AI::AIWorld& world)
 
 void House::Initialize()
 {
+	mStateMachine = std::make_unique<AI::StateMachine<House>>(*this);
+	//mStateMachine->AddState<HouseSpin>();
+	mStateMachine->AddState<HouseAnim0>();
+	mStateMachine->AddState<HouseAnim1>();
+	mStateMachine->AddState<HouseAnim2>();
+
+
+	//mTextureId = X::LoadTexture("knight/Idle01.png");
+
+	mStateMachine->ChangeState(HouseAnim0::GetName());
+
+	
 	//mTextureId = X::LoadTexture("refinery_05.png");
 	mCollisionCircle.center = { position.x,position.y };
 	mCollisionCircle.radius = { radius };
@@ -20,6 +36,8 @@ void House::Initialize()
 
 void House::Update(float deltaTime)
 {
+	mStateMachine->Update(deltaTime);
+
 	if (mOwner != nullptr)
 		mUnits += deltaTime * mRegenRate;
 }
@@ -28,10 +46,14 @@ void House::Render()
 {
 	//float angle = atan2(-heading.x, heading.y) + X::Math::kPi;
 	//int frame = (int)(angle / X::Math::kTwoPi * mTextureIds.size()) % mTextureIds.size();
-
+	
 	//X::DrawSprite(mTextureId, position);
-
-	X::DrawScreenCircle(mCollisionCircle, GetPlayerColor());
+	
+	float scale = (mCollisionCircle.radius * 2) / static_cast<float>(X::GetSpriteWidth(mTextureId));	
+	X::DrawSprite(mTextureId, position, X::Pivot::Center, X::Flip::None, scale);
+	//X::DrawSprite(mTextureId, recto, position);
+	//X::GetSpriteWidth
+	//X::DrawScreenCircle(mCollisionCircle, GetPlayerColor());
 
 	//debug
 	//X::DrawScreenText(std::to_string(mUnits).c_str(), position.x, position.y - 94.0f, 20.0f, X::Colors::White);
@@ -50,7 +72,8 @@ void House::Render()
 		posOffset = 11.0f;
 
 	sprintf_s(currentUnits, "%.0f", floor(mUnits));
-	X::DrawScreenText(currentUnits, position.x - posOffset, position.y - 10.0f, 20.0f, GetPlayerColor());
+	//X::DrawScreenText(currentUnits, position.x - posOffset, position.y - 10.0f, 20.0f, GetPlayerColor());
+	X::DrawScreenText(currentUnits, position.x - posOffset, position.y - 10.0f, 20.0f, X::Colors::White);
 
 	if (mouseOver({ (float)X::GetMouseScreenX(), (float)X::GetMouseScreenY() })) {
 		DrawOverInfo();

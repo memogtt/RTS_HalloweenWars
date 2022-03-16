@@ -29,20 +29,22 @@ namespace
 {
 	struct SpriteCommand
 	{
-		SpriteCommand(TextureId inTextureId, const Math::Vector2& inPosiiton, float inRotation)
+		SpriteCommand(TextureId inTextureId, const Math::Vector2& inPosiiton, float inRotation, float scale)
 			: textureId(inTextureId)
 			, sourceRect({ 0.0f, 0.0f, 0.0f, 0.0f })
 			, position(inPosiiton)
 			, rotation(inRotation)
+			, scale(scale)
 		{}
 
-		SpriteCommand(TextureId inTextureId, const Math::Vector2& inPosiiton, float inRotation, Pivot pivot, Flip flip)
+		SpriteCommand(TextureId inTextureId, const Math::Vector2& inPosiiton, float inRotation, Pivot pivot, Flip flip, float scale)
 			: textureId(inTextureId)
 			, sourceRect({ 0.0f, 0.0f, 0.0f, 0.0f })
 			, position(inPosiiton)
 			, rotation(inRotation)
 			, pivot(pivot)
 			, flip(flip)
+			, scale(scale)
 		{}
 
 		SpriteCommand(TextureId inTextureId, const Math::Rect& inSourceRect, const Math::Vector2& inPosiiton, float inRotation)
@@ -58,6 +60,7 @@ namespace
 		float rotation{ 0.0f };
 		Pivot pivot = Pivot::Center;
 		Flip flip = Flip::None;
+		float scale{ 1.0f };
 	};
 
 	struct TextCommand
@@ -272,7 +275,7 @@ void X::Run(GameLoop gameLoop)
 			{
 				if (Math::IsEmpty(command.sourceRect))
 				{
-					SpriteRenderer::Get()->Draw(*texture, command.position, command.rotation, command.pivot, command.flip);
+					SpriteRenderer::Get()->Draw(*texture, command.position, command.rotation, command.pivot, command.flip, command.scale);
 				}
 				else
 				{
@@ -597,16 +600,16 @@ float X::GetTextWidth(const char* str, float size)
 	return myFont.GetStringWidth(wstr.c_str(), size);
 }
 
-void X::DrawSprite(TextureId textureId, const Math::Vector2& position, Pivot pivot, Flip flip)
+void X::DrawSprite(TextureId textureId, const Math::Vector2& position, Pivot pivot, Flip flip, float scale)
 {
 	XASSERT(initialized, "[XEngine] Engine not started.");
-	mySpriteCommands.emplace_back(textureId, position, 0.0f, pivot, flip);
+	mySpriteCommands.emplace_back(textureId, position, 0.0f, pivot, flip, scale);
 }
 
-void X::DrawSprite(TextureId textureId, const Math::Vector2& position, float rotation, Pivot pivot, Flip flip)
+void X::DrawSprite(TextureId textureId, const Math::Vector2& position, float rotation, Pivot pivot, Flip flip, float scale)
 {
 	XASSERT(initialized, "[XEngine] Engine not started.");
-	mySpriteCommands.emplace_back(textureId, position, rotation, pivot, flip);
+	mySpriteCommands.emplace_back(textureId, position, rotation, pivot, flip, scale);
 }
 
 void X::DrawSprite(TextureId textureId, const Math::Rect& sourceRect, const Math::Vector2& position)

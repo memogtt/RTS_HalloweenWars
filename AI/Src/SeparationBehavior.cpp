@@ -20,14 +20,15 @@ X::Math::Vector2 SeparationBehavior::Calculate(Agent& agent)
 		if (lenghtSqr <= 0.0f)
 			continue;
 
-		X::DrawScreenLine(agent.position, agent.position + ((neighborToAgent / X::Math::MagnitudeSqr(neighborToAgent)) * agent.maxSpeed*getWeight()), X::Colors::Yellow);
+		if (ShowDebug())
+		{
+			X::DrawScreenLine(agent.position, agent.position + ((neighborToAgent / X::Math::MagnitudeSqr(neighborToAgent)) * agent.maxSpeed * getWeight()), X::Colors::Yellow);
+		}
 		//X::DrawScreenLine(agent.position, agent.position + (lenghtSqr), X::Colors::Green);
 		separation += (neighborToAgent / lenghtSqr) * agent.maxSpeed;
 	}
 
-	if (ShowDebug())
-	{
-	}
+
 
 	return separation;
 }
