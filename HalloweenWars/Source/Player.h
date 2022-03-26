@@ -26,12 +26,17 @@ public:
 
 	const std::string GetName() const { return mName; }
 	void SetName(std::string s) { mName = s; }
+
+	const int GetMonsterNum() const { return mMonsterNum; }
+	void SetMonsterNum(int num) { mMonsterNum = num; }
+
 private:
 
 	int mPlayerNum = 0;
 	int mCurrentPercentage = 50;
 	X::Color mColor = X::Colors::Green;
 	std::string mName = "default";
+	int mMonsterNum = 0;
 	//int mHouseSelected = 0;
 
 };

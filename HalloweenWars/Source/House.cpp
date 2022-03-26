@@ -7,6 +7,8 @@
 #include "HouseAnim0.h"
 #include "HouseAnim1.h"
 #include "HouseAnim2.h"
+#include "HouseAnim3.h"
+#include "HouseAnim4.h"
 //#include <ImGui/Inc/imgui.h>
 
 House::House(AI::AIWorld& world)
@@ -21,14 +23,11 @@ void House::Initialize()
 	mStateMachine->AddState<HouseAnim0>();
 	mStateMachine->AddState<HouseAnim1>();
 	mStateMachine->AddState<HouseAnim2>();
-
-
-	//mTextureId = X::LoadTexture("knight/Idle01.png");
+	mStateMachine->AddState<HouseAnim3>();
+	mStateMachine->AddState<HouseAnim4>();
 
 	mStateMachine->ChangeState(HouseAnim0::GetName());
 
-	
-	//mTextureId = X::LoadTexture("refinery_05.png");
 	mCollisionCircle.center = { position.x,position.y };
 	mCollisionCircle.radius = { radius };
 
@@ -150,6 +149,7 @@ void House::sendMonsters(AI::AIWorld& world, std::shared_ptr<House>& enemy, std:
 		scv->SetDestinationId(enemy->id);
 		scv->SetActiveBehaviors(true, false, false, false, true, false, false);
 		scv->SetOwner(mOwner);
+		scv->playerMonster = mOwner->GetMonsterNum();
 	}
 	IncreaseUnits(numMonsters * -1.0f);
 }
@@ -172,6 +172,7 @@ void House::sendMonsters(AI::AIWorld& world, std::shared_ptr<House>& enemy, std:
 		scv->SetDestinationId(enemy->id);
 		scv->SetActiveBehaviors(true, false, false, false, true, false, false);
 		scv->SetOwner(player);
+		scv->playerMonster = mOwner->GetMonsterNum();
 	}
 	IncreaseUnits(numMonsters * -1.0f);
 }

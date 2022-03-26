@@ -1,8 +1,9 @@
 #include "SCVSkeleton.h"
 
 #include "SCV.h"
-//#include "HouseAnim0.h"
-//#include "HouseAnim2.h"
+#include "SCVPumpkinhead.h"
+#include "SCVGhost.h"
+#include "SCVAlien.h"
 
 
 void SCVSkeleton::Enter(SCV& agent)
@@ -44,6 +45,15 @@ void SCVSkeleton::Update(SCV& agent, float deltaTime)
 		agent.animId = currentTexture;
 		agent.mTextureId = mTextureIds[currentTexture];
 		mAnimTime = X::GetTime() + 10 * deltaTime;
+	}
+
+	if (agent.playerMonster != 0) {
+		if (agent.playerMonster == 1)
+			agent.mStateMachine->ChangeState(SCVPumpkinhead::GetName());
+		else if (agent.playerMonster == 2)
+			agent.mStateMachine->ChangeState(SCVGhost::GetName());
+		else if (agent.playerMonster == 3)
+			agent.mStateMachine->ChangeState(SCVAlien::GetName());
 	}
 
 	//if (agent.mHealth <= 0)

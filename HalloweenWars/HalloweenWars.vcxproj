@@ -31,7 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -39,14 +39,14 @@
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -54,7 +54,7 @@
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -175,10 +175,15 @@
     <ClCompile Include="Source\HouseAnim0.cpp" />
     <ClCompile Include="Source\HouseAnim1.cpp" />
     <ClCompile Include="Source\HouseAnim2.cpp" />
+    <ClCompile Include="Source\HouseAnim3.cpp" />
+    <ClCompile Include="Source\HouseAnim4.cpp" />
     <ClCompile Include="Source\HouseSpin.cpp" />
     <ClCompile Include="Source\NetworkInterface.cpp" />
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\SCV.cpp" />
+    <ClCompile Include="Source\SCVAlien.cpp" />
+    <ClCompile Include="Source\SCVGhost.cpp" />
+    <ClCompile Include="Source\SCVPumpkinhead.cpp" />
     <ClCompile Include="Source\SCVSkeleton.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -189,10 +194,15 @@
     <ClInclude Include="Source\HouseAnim0.h" />
     <ClInclude Include="Source\HouseAnim1.h" />
     <ClInclude Include="Source\HouseAnim2.h" />
+    <ClInclude Include="Source\HouseAnim3.h" />
+    <ClInclude Include="Source\HouseAnim4.h" />
     <ClInclude Include="Source\HouseSpin.h" />
     <ClInclude Include="Source\NetworkInterface.h" />
     <ClInclude Include="Source\Player.h" />
     <ClInclude Include="Source\SCV.h" />
+    <ClInclude Include="Source\SCVAlien.h" />
+    <ClInclude Include="Source\SCVGhost.h" />
+    <ClInclude Include="Source\SCVPumpkinhead.h" />
     <ClInclude Include="Source\SCVSkeleton.h" />
     <ClInclude Include="Source\TypeIds.h" />
   </ItemGroup>

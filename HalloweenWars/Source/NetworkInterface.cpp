@@ -281,6 +281,7 @@ bool NetworkInterface::ServerLobbyWaitHello(std::vector<std::shared_ptr<Player>>
 		if (header->id == 3)
 		{
 			playerMonster[clientHello->idPlayer] = clientHello->idMonster;
+			players[clientHello->idPlayer-1]->SetMonsterNum(clientHello->idMonster);
 		}
 
 

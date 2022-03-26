@@ -88,6 +88,8 @@ void GameEngine::GameStart()
 	mTextureIds[9] = X::LoadTexture("HW/monster_02_pumpkinhead_2.png");
 	mTextureIds[10] = X::LoadTexture("HW/monster_03_ghost_2.png");
 	mTextureIds[11] = X::LoadTexture("HW/monster_04_alien_2.png");
+
+	textura = X::LoadTexture("HW/space2.png");
 }
 
 void GameEngine::GameLoop()
@@ -272,7 +274,7 @@ bool GameEngine::GameLoopInitialSinglePlayer(float deltaTime)
 
 
 	generateHouses(20);
-	assignCurrentPlayersToHouses(2,true);
+	assignCurrentPlayersToHouses(3,true);
 	currentplayer = players.front();
 	//assignCurrentPlayersToHouses(current_players);
 
@@ -283,6 +285,7 @@ bool GameEngine::GameLoopInitialSinglePlayer(float deltaTime)
 
 bool GameEngine::GameLoopMultiPlayer(float deltaTime)
 {
+	X::DrawSprite(textura, { 0.0f,0.0f });
 
 	if (pCommPort->isServer()) {
 		if (players.empty())
@@ -404,15 +407,25 @@ bool GameEngine::GameLoopMultiPlayer(float deltaTime)
 	//X::DrawScreenText(std::to_string(currentplayer->GetPercentage()).c_str(), 50.0f, (float)X::GetScreenHeight() - 40.0f, 30.0f, X::Colors::White);
 	X::DrawScreenText(currentPercentage, 50.0f, (float)X::GetScreenHeight() - 40.0f, 30.0f, X::Colors::White);
 
-	//if (X::IsKeyDown(X::Keys::ONE))
-	//{
-	//	currentplayer = players[0];
-	//}
+	if (X::IsKeyDown(X::Keys::ONE))
+	{
+		currentplayer = players[0];
+	}
 
-	//if (X::IsKeyDown(X::Keys::TWO))
-	//{
-	//	currentplayer = players[1];
-	//}
+	if (X::IsKeyDown(X::Keys::TWO))
+	{
+		currentplayer = players[1];
+	}
+
+	if (X::IsKeyDown(X::Keys::THREE))
+	{
+		currentplayer = players[2];
+	}
+
+	if (X::IsKeyDown(X::Keys::FOUR))
+	{
+		currentplayer = players[3];
+	}
 
 	int playerWin = checkWinCondition();
 	if (playerWin != 0)
@@ -428,6 +441,7 @@ bool GameEngine::GameLoopMultiPlayer(float deltaTime)
 
 bool GameEngine::GameLoopSinglePlayer(float deltaTime)
 {
+	X::DrawSprite(textura, { 0.0f,0.0f });
 
 	for (auto& scv : scvs) {
 		if (scv->checkCollision())
@@ -524,6 +538,12 @@ bool GameEngine::GameLoopSinglePlayer(float deltaTime)
 		currentplayer = players[1];
 	}
 
+	if (X::IsKeyPressed(X::Keys::THREE))
+	{
+		currentplayer = players[2];
+	}
+
+
 	if (scroll != X::GetMouseMoveZ())
 	{
 		if (scroll < X::GetMouseMoveZ())
@@ -542,15 +562,25 @@ bool GameEngine::GameLoopSinglePlayer(float deltaTime)
 	//X::DrawScreenText(std::to_string(currentplayer->GetPercentage()).c_str(), 50.0f, (float)X::GetScreenHeight() - 40.0f, 30.0f, X::Colors::White);
 	X::DrawScreenText(currentPercentage, 50.0f, (float)X::GetScreenHeight() - 40.0f, 30.0f, X::Colors::White);
 
-	//if (X::IsKeyDown(X::Keys::ONE))
-	//{
-	//	currentplayer = players[0];
-	//}
+	if (X::IsKeyDown(X::Keys::ONE))
+	{
+		currentplayer = players[0];
+	}
 
-	//if (X::IsKeyDown(X::Keys::TWO))
-	//{
-	//	currentplayer = players[1];
-	//}
+	if (X::IsKeyDown(X::Keys::TWO))
+	{
+		currentplayer = players[1];
+	}
+
+	if (X::IsKeyDown(X::Keys::THREE))
+	{
+		currentplayer = players[2];
+	}
+
+	if (X::IsKeyDown(X::Keys::FOUR))
+	{
+		currentplayer = players[3];
+	}
 
 	int playerWin = checkWinCondition();
 	if (playerWin != 0)
@@ -654,6 +684,7 @@ void GameEngine::assignCurrentPlayersToHouses(int num, bool singlePlayer)
 			//players.emplace_back(std::make_shared<Player>(numPlayerSender));
 			player->SetColor(playerColors[i + 1]);
 			player->SetName("a");
+			player->SetMonsterNum(i);
 
 		}
 	}

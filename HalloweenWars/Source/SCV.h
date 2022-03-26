@@ -29,7 +29,7 @@ public:
 	std::unique_ptr<AI::StateMachine<SCV>> mStateMachine;
 	X::TextureId mTextureId = 0;
 	int animId = 0;
-
+	int playerMonster = 1;
 private:
 	std::unique_ptr<AI::SteeringModule> mSteeringModule;
 	std::array<X::TextureId, 4> mTextureIds;

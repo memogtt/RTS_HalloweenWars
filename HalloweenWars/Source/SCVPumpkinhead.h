@@ -5,10 +5,10 @@
 
 class SCV;
 
-class SCVSkeleton : public AI::State<SCV>
+class SCVPumpkinhead : public AI::State<SCV>
 {
 public:
-	static std::string GetName() { return "HouseAnim1"; }
+	static std::string GetName() { return "SCVPumpkinhead"; }
 
 	void Enter(SCV& agent) override;
 	void Update(SCV& agent, float deltaTime) override;

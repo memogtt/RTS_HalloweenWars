@@ -14,6 +14,11 @@
     <ClCompile Include="Source\HouseAnim1.cpp" />
     <ClCompile Include="Source\HouseAnim2.cpp" />
     <ClCompile Include="Source\SCVSkeleton.cpp" />
+    <ClCompile Include="Source\SCVAlien.cpp" />
+    <ClCompile Include="Source\SCVGhost.cpp" />
+    <ClCompile Include="Source\SCVPumpkinhead.cpp" />
+    <ClCompile Include="Source\HouseAnim3.cpp" />
+    <ClCompile Include="Source\HouseAnim4.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Address.h" />
@@ -29,5 +34,10 @@
     <ClInclude Include="Source\HouseAnim1.h" />
     <ClInclude Include="Source\HouseAnim2.h" />
     <ClInclude Include="Source\SCVSkeleton.h" />
+    <ClInclude Include="Source\SCVAlien.h" />
+    <ClInclude Include="Source\SCVGhost.h" />
+    <ClInclude Include="Source\SCVPumpkinhead.h" />
+    <ClInclude Include="Source\HouseAnim3.h" />
+    <ClInclude Include="Source\HouseAnim4.h" />
   </ItemGroup>
 </Project>

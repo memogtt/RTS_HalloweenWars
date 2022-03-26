@@ -1,11 +1,12 @@
-#include "SCVSkeleton.h"
+#include "SCVPumpkinhead.h"
 
 #include "SCV.h"
-//#include "HouseAnim0.h"
-//#include "HouseAnim2.h"
+#include "SCVSkeleton.h"
+#include "SCVGhost.h"
+#include "SCVAlien.h"
 
 
-void SCVSkeleton::Enter(SCV& agent)
+void SCVPumpkinhead::Enter(SCV& agent)
 {
 	timer = 0.0f;
 	currentTexture = -1;
@@ -14,14 +15,14 @@ void SCVSkeleton::Enter(SCV& agent)
 	for (size_t i = 0; i < mTextureIds.size(); ++i)
 	{
 		char name[256];
-		sprintf_s(name, "HW/monster_01_skeleton_%1zu.png", i );
+		sprintf_s(name, "HW/monster_02_pumpkinhead_%1zu.png", i );
 		//sprintf_s(name, "Planets/9/%01zu.png", i + 1);
 		mTextureIds[i] = X::LoadTexture(name);
 	}
 
 }
 
-void SCVSkeleton::Update(SCV& agent, float deltaTime)
+void SCVPumpkinhead::Update(SCV& agent, float deltaTime)
 {
 
 	//if (agent.GetPlayerNetworkId() != 1)
@@ -44,6 +45,15 @@ void SCVSkeleton::Update(SCV& agent, float deltaTime)
 		agent.animId = currentTexture;
 		agent.mTextureId = mTextureIds[currentTexture];
 		mAnimTime = X::GetTime() + 10 * deltaTime;
+	}
+
+	if (agent.playerMonster != 1) {
+		if (agent.playerMonster == 0)
+			agent.mStateMachine->ChangeState(SCVSkeleton::GetName());
+		else if (agent.playerMonster == 2)
+			agent.mStateMachine->ChangeState(SCVGhost::GetName());
+		else if (agent.playerMonster == 3)
+			agent.mStateMachine->ChangeState(SCVAlien::GetName());
 	}
 
 	//if (agent.mHealth <= 0)

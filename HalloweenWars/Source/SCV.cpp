@@ -6,6 +6,11 @@
 #include <ImGui/Inc/imgui.h>
 
 #include "SCVSkeleton.h"
+#include "SCVPumpkinhead.h"
+#include "SCVGhost.h"
+#include "SCVAlien.h"
+
+#include "SCV.h"
 
 SCV::SCV(AI::AIWorld& world)
 	: AI::Agent(world, TypeIds::SCV)//, mPlayerOwner(2)
@@ -19,9 +24,9 @@ void SCV::Initialize()
 	mStateMachine = std::make_unique<AI::StateMachine<SCV>>(*this);
 	//mStateMachine->AddState<HouseSpin>();
 	mStateMachine->AddState<SCVSkeleton>();
-	//mStateMachine->AddState<SCVPumpkinhead>();
-	//mStateMachine->AddState<SCVGhost>();
-	//mStateMachine->AddState<SCVAlien>();
+	mStateMachine->AddState<SCVPumpkinhead>();
+	mStateMachine->AddState<SCVGhost>();
+	mStateMachine->AddState<SCVAlien>();
 
 	mStateMachine->ChangeState(SCVSkeleton::GetName());
 
@@ -63,7 +68,7 @@ bool SCV::checkCollision()
 	neighbors = world.Getneighborhood({ position,100.0f }, TypeIds::House);
 
 	for (auto& neighbor : neighbors) {
-		if (neighbor->id == mDestinationId && X::Math::PointInCircle(position, { neighbor->position,neighbor->radius})) {
+		if (neighbor->id == mDestinationId && X::Math::PointInCircle(position, { neighbor->position,neighbor->radius })) {
 
 			static_cast<House*>(neighbor)->ProcessAttack(1.0f, mOwner);
 			return true;
